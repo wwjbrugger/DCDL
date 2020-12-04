@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH -J parallel_sls             # Job name
+
+#SBATCH -o result/sls_test.\%j.out  # Specify stdout output_one_picture file where \% expands to jobID
+#SBATCH -p short	                  # Queue name
+#SBATCH -n 63                       # Total number of tasks (=cores if CPU is used)
+#SBATCH --mem=1000MB                # The amount of RAM requested
+#SBATCH -t 00:05:00                 # Run time (hh_mm_ss) - 5 minutes
+
+#SBATCH -A m2_datamining            # Specify allocation to charge against
+# Next we load all modules we need. Loading these in the script ensures a consistent environment.
+
+# Launch the executable
+# nvidia-smi
+make all
+chmod u+x Parallel_SLS
+srun ./bld/Parallel_SLS
