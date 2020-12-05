@@ -10,74 +10,73 @@ import matplotlib.pyplot as plt
 
 
 
-def balance_data_set(data, label, percent_of_major_label_to_keep):
-    """
-    :param data:  dithered data
-    :param label: label in one hot encoding. [1,0] data is part of the 'one' label.   [0,1] data is part of the 'all' label.
-    :param percent_of_major_label_to_keep:
-    :return:
-    """
-    unique, counts = np.unique(label[:, 0], return_counts=True)
-    print('size_of_set before balancing {} with {}'.format(data.shape[0], dict(zip(unique, counts))))
-    # keeps data if label is part of the one label and
-    # by a chance of percent_of_major_label_to_keep if it's a rest class
-    index_to_keep = [i for i, one_hot_label in enumerate(label) if
-                     one_hot_label[0] == 1 or random.random() < percent_of_major_label_to_keep]
-    # get balanced data and label
-    data = data[index_to_keep]
-    label = label[index_to_keep]
-
-    unique, counts = np.unique(label[:, 0], return_counts=True)
-    print('size_of_set {} with {}'.format(data.shape[0], dict(zip(unique, counts))))
-    return data, label
-
-# Update possibility (was not changed to be consistent with existing experiment results):
-#    use balance method below. This one makes sure:
-#          Half of the returned data is from label 'one' class
-#          The other half consists of equal parts of 'all' other classes.
-# def balance_data_set(data_list, label_list, number_class_to_predict, seed = None):
+# def balance_data_set(data, label, percent_of_major_label_to_keep):
+#     old balance method
 #     """
-#     Balances data for one against all tests.
-#     Half of the returned data is from label 'one' class
-#     The other half consists of equal parts of 'all' other classes.
-#     @param data_list:
-#     @param label_list:
-#     @param number_class_to_predict:
-#     @param seed:
-#     @return:
+#     :param data:  dithered data
+#     :param label: label in one hot encoding. [1,0] data is part of the 'one' label.   [0,1] data is part of the 'all' label.
+#     :param percent_of_major_label_to_keep:
+#     :return:
 #     """
-#     np.random.seed(seed)
-#     number_classes = label_list.shape[1]
-#     balanced_dataset = []
-#     balanced_label = []
-#     # how many example we need from a label which is part of 'all' other classes
-#     num_elements_minority = int(label_list.shape[0] / number_classes/ (number_classes-1))
+#     unique, counts = np.unique(label[:, 0], return_counts=True)
+#     print('size_of_set before balancing {} with {}'.format(data.shape[0], dict(zip(unique, counts))))
+#     # keeps data if label is part of the one label and
+#     # by a chance of percent_of_major_label_to_keep if it's a rest class
+#     index_to_keep = [i for i, one_hot_label in enumerate(label) if
+#                      one_hot_label[0] == 1 or random.random() < percent_of_major_label_to_keep]
+#     # get balanced data and label
+#     data = data[index_to_keep]
+#     label = label[index_to_keep]
 #
-#     for i in range(number_classes):
-#         # get all indices of data which belong to label i
-#         indices = [j for j, one_hot_label in enumerate(label_list) if
-#                           one_hot_label[i] == 1]
-#
-#         if i == number_class_to_predict:
-#             # add all examples which belong to label 'one'
-#             balanced_dataset.append(data_list[indices])
-#             balanced_label.append(label_list[indices])
-#         else:
-#             # sampel subset of label i of size num_elements_minority
-#             sub_sample_indices = random.sample(indices, num_elements_minority)
-#             balanced_dataset.append(data_list[sub_sample_indices])
-#             balanced_label.append(label_list[sub_sample_indices])
-#     balanced_dataset = np.concatenate(balanced_dataset, axis=0)
-#     balanced_label = np.concatenate(balanced_label, axis=0)
-#     # permute data so not all label are at one position of the data array
-#     idx = np.random.permutation(len(balanced_label))
-#     x, y = balanced_dataset[idx], balanced_label[idx]
-#
-#     return x, y
+#     unique, counts = np.unique(label[:, 0], return_counts=True)
+#     print('size_of_set {} with {}'.format(data.shape[0], dict(zip(unique, counts))))
+#     return data, label
+
+def balance_data_set(data_list, label_list, one_class_against_all, seed = None):
+    """
+    Balances data for one against all tests.
+    Half of the returned data is from label 'one' class
+    The other half consists of equal parts of 'all' other classes.
+    @param data_list:
+    @param label_list:
+    @param number_class_to_predict:
+    @param seed:
+    @return:
+    """
+    np.random.seed(seed)
+    number_classes = label_list.shape[1]
+    balanced_dataset = []
+    balanced_label = []
+    # how many example we have in the set of the 'one' class  from a label which is part of 'all' other classes
+    num_elements_one_class = int(label_list[:, one_class_against_all].sum())
+    num_elements_minority = int(num_elements_one_class/ (number_classes-1))
+
+    for i in range(number_classes):
+        # get all indices of data which belong to label i
+        indices = [j for j, one_hot_label in enumerate(label_list) if
+                          one_hot_label[i] == 1]
+
+        if i == one_class_against_all:
+            # add all examples which belong to label 'one'
+            balanced_dataset.append(data_list[indices])
+            balanced_label.append(label_list[indices])
+        else:
+            # sampel subset of label i of size num_elements_minority
+            # Chooses k unique random elements from a population sequence or set.
+            sub_sample_indices = random.sample(population=indices, k=num_elements_minority)
+            balanced_dataset.append(data_list[sub_sample_indices])
+            balanced_label.append(label_list[sub_sample_indices])
+    balanced_dataset = np.concatenate(balanced_dataset, axis=0)
+    balanced_label = np.concatenate(balanced_label, axis=0)
+    # permute data so not all label are at one position of the data array
+    idx = np.random.permutation(len(balanced_label))
+    x, y = balanced_dataset[idx], balanced_label[idx]
+
+    return x, y
 
 
 def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_all,
-                    percent_of_major_label_to_keep=None, number_class_to_predict=None, data_set_to_use=None, convert_to_grey = None):
+                    number_class_to_predict, data_set_to_use, convert_to_grey, values_max_1):
     # preprocess datasets
     #   - load
     #   - dither
@@ -96,8 +95,8 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
     # The original train dataset which is loaded from tensorflow is permuted.
     # In a sequential manner the first size_train_nn are returned
     # if validation data are requested the next size_valid_nn data are returned
-    train_nn, label_train_nn = dataset.get_chunk(size_train_nn)
-    val, label_val = dataset.get_chunk(size_valid_nn)
+    train_nn, label_train_nn = dataset.get_chunk(chunk_size=size_train_nn)
+    val, label_val = dataset.get_chunk(chunk_size=size_valid_nn)
     # The original test dataset which is loaded from tensorflow is permuted and then returned.
     test, label_test = dataset.get_test()
     if train_nn.ndim == 3:
@@ -110,113 +109,121 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
     if data_set_to_use in 'numbers':
         class_names = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
     elif data_set_to_use in 'fashion':
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        # class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
-        class_names = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+        class_names =  ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     elif data_set_to_use in 'cifar':
         class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
     # show data before preprocessing
-    dith.visualize_pic(train_nn, label_train_nn, class_names,
-                       " pic how they are in dataset", plt.cm.Greys)
+    dith.visualize_pic(pic_array=train_nn,
+                       label_array=label_train_nn,
+                       class_names=class_names,
+                       title=" pic how they are in dataset",
+                       colormap=plt.cm.Greys)
+
+    # balance dataset otherwise we would have 10 % one Label data and 90 %  rest data
+    train_nn, label_train_nn = balance_data_set(data_list=train_nn,
+                                                label_list=label_train_nn,
+                                                one_class_against_all=one_against_all)
+    val, label_val = balance_data_set(data_list=val,
+                                      label_list=label_val,
+                                      one_class_against_all=one_against_all)
+    test, label_test = balance_data_set(data_list=test,
+                                        label_list=label_test,
+                                        one_class_against_all=one_against_all)
 
     # convert colour picture in greyscale pictures. Is not used in experiment
     if convert_to_grey:
-        train_nn = help.convert_to_grey(train_nn)
-        val = help.convert_to_grey(val)
-        test = help.convert_to_grey(test)
-        dith.visualize_pic(train_nn, label_train_nn, class_names,
-                           " pic in gray ", plt.cm.Greys)
+        train_nn = help.convert_to_grey(pic_array = train_nn)
+        val = help.convert_to_grey(pic_array = val)
+        test = help.convert_to_grey(pic_array= test)
+        dith.visualize_pic(pic_array=train_nn,
+                           label_array=label_train_nn,
+                           class_names=class_names,
+                           title=" pic in gray ",
+                           colormap=plt.cm.Greys)
 
     # dither data with 'floyd-steinberg' algorithm in Pillow library
     if dithering_used:
-        train_nn = dith.dither_pic(train_nn)
-        val = dith.dither_pic(val)
-        test = dith.dither_pic(test)
-        dith.visualize_pic(train_nn, label_train_nn, class_names,
-                           " pic after dithering", plt.cm.Greys)
+        train_nn = dith.dither_pic(pic_array = train_nn,
+                                   values_max_1 = values_max_1)
+        val = dith.dither_pic(pic_array = val,
+                              values_max_1= values_max_1)
+        test = dith.dither_pic(pic_array=test,
+                               values_max_1= values_max_1)
+
+        dith.visualize_pic(pic_array=train_nn,
+                           label_array=label_train_nn,
+                           class_names=class_names,
+                           title = " pic after dithering",
+                           colormap= plt.cm.Greys)
 
     # convert for one-against-all testing one-hot label with 10 classes in one-hot label with two classes ([one, rest])
-    label_train_nn = help.one_class_against_all(label_train_nn, one_against_all,
-                                                number_classes_output=number_class_to_predict)
-    label_val = help.one_class_against_all(label_val, one_against_all, number_classes_output=number_class_to_predict)
-    label_test = help.one_class_against_all(label_test, one_against_all, number_classes_output=number_class_to_predict)
+    label_train_nn = help.one_class_against_all(array_label = label_train_nn,
+                                                one_class= one_against_all,
+                                                number_classes_output = number_class_to_predict)
+    label_val = help.one_class_against_all(array_label =  label_val,
+                                           one_class = one_against_all,
+                                           number_classes_output = number_class_to_predict)
+    label_test = help.one_class_against_all(array_label = label_test,
+                                            one_class = one_against_all,
+                                            number_classes_output=number_class_to_predict)
 
-    # balance dataset otherwise we would have 10 % one Label data and 90 %  rest data
-    train_nn, label_train_nn = balance_data_set(train_nn, label_train_nn, percent_of_major_label_to_keep)
-    val, label_val = balance_data_set(val, label_val, percent_of_major_label_to_keep)
-    test, label_test = balance_data_set(test, label_test, percent_of_major_label_to_keep)
+
 
     # show data after preprocessing
-    dith.visualize_pic(train_nn, label_train_nn, class_names,
-                       " pic how they are feed into net", plt.cm.Greys)
+    dith.visualize_pic(pic_array = train_nn,
+                       label_array = label_train_nn,
+                       class_names = class_names,
+                       title = " pic how they are feed into net",
+                       colormap =plt.cm.Greys)
 
     return train_nn, label_train_nn, val, label_val, test, label_test
 
 
-def train_model(network, dithering_used, one_against_all, data_set_to_use, path_to_use, convert_to_grey, results):
-    if data_set_to_use in 'cifar':
-        size_train_nn = 45000
-    else:
-        size_train_nn = 55000
-    size_valid_nn = 5000
-    # percentage with which data of the rest class are getting into used data sets
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    # 0.1 is not optimal since we use the 'one' label completely we would have to use 100/9 = 11.111111 period
-    # as percentage to get a 50/ 50 data set
-    percent_of_major_label_to_keep = 0.1
+def train_model(network, dithering_used, one_against_all, data_set_to_use, path_to_use, convert_to_grey,
+                results, size_train_nn, size_valid_nn, values_max_1):
 
     print("Training", flush=True)
 
-    # Code if you want to load an already existing data set directly
-    # Update possibility (was not changed to be consistent with existing experiment results):
-        #Can be deleted
-    """
-    if path.exists(path_to_use['train_data']) and path.exists(path_to_use['train_label']) and path.exists(
-            path_to_use['val_data']) and path.exists(path_to_use['val_label']) and path.exists(
-            path_to_use['test_data']) and path.exists(path_to_use['test_label']):
-        train_nn = np.load(path_to_use['train_data'])
-        label_train_nn = np.load(path_to_use['train_label'])
-        val = np.load(path_to_use['val_data'])
-        label_val = np.load(path_to_use['val_label'])
-        test = np.load(path_to_use['test_data'])
-        label_test = np.load(path_to_use['test_label'])
-        
-    else:
-    """
-
     # preprocess datasets
-    train_nn, label_train_nn, val, label_val, test, label_test = prepare_dataset(size_train_nn, size_valid_nn,
-                                                                                 dithering_used, one_against_all,
-                                                                                 percent_of_major_label_to_keep=percent_of_major_label_to_keep,
+    train_nn, label_train_nn, val, label_val, test, label_test = prepare_dataset(size_train_nn = size_train_nn,
+                                                                                 size_valid_nn=size_valid_nn,
+                                                                                 dithering_used=dithering_used,
+                                                                                 one_against_all=one_against_all,
                                                                                  number_class_to_predict=network.classes,
-                                                                                 data_set_to_use=data_set_to_use, convert_to_grey = convert_to_grey)
+                                                                                 data_set_to_use=data_set_to_use,
+                                                                                 convert_to_grey = convert_to_grey,
+                                                                                 values_max_1 = values_max_1)
 
     print('\n\n used data sets are saved')
     # save preprocessed datasets (needed for later evaluation)
-    np.save(path_to_use['train_data'], train_nn)
-    np.save(path_to_use['train_label'], label_train_nn)
-    np.save(path_to_use['val_data'], val)
-    np.save(path_to_use['val_label'], label_val)
-    np.save(path_to_use['test_data'], test)
-    np.save(path_to_use['test_label'], label_test)
+    np.save(file=path_to_use['train_data'], arr=train_nn)
+    np.save(file=path_to_use['train_label'],arr=label_train_nn)
+    np.save(file=path_to_use['val_data'], arr=val)
+    np.save(file=path_to_use['val_label'], arr=label_val)
+    np.save(file=path_to_use['test_data'], arr=test)
+    np.save(file=path_to_use['test_label'], arr=label_test)
 
 
 
     print("Start Training")
     # train network
-    network.training(train_nn, label_train_nn, val, label_val, path_to_use)
+    network.training(train=train_nn,
+                     label_train=label_train_nn,
+                     val=val,
+                     label_val=label_val,
+                     path_to_use=path_to_use)
 
     print("\n Start evaluate with train set ")
     # save accuracy on the NN on train set in results
-    results.at[1, 'Neural network'] = network.evaluate(train_nn, label_train_nn)
+    results.at[1, 'Neural network'] = network.evaluate(input=train_nn, label=label_train_nn)
 
     print("\n Start evaluate with validation set ")
     # should be the same value as the highest during training
-    network.evaluate(val, label_val)
+    network.evaluate(input=val, label=label_val)
 
     print("\n Start evaluate with test set ")
     # save accuracy on the NN on test set in results
-    results.at[3, 'Neural network'] = network.evaluate(test, label_test)
+    results.at[3, 'Neural network'] = network.evaluate(input=test, label=label_test)
 
     print('end')

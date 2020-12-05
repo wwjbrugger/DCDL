@@ -57,11 +57,6 @@ def rule_extraction_with_sls(data, label, Number_of_Product_term, Maximum_Steps_
                                    zero_init=False
                                    )
 
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    #   delete  comments after here
-   # boolsche_formel  = get_boolsche_formel(on_off_to_store, pos_neg_to_store)
-  #  variable_on_off= [np.unpackbits(x)] for x in on_off_to_store]
-
     return bofo.Boolsche_formel(on_off_to_store, pos_neg_to_store, Number_of_Product_term)
 
 """
@@ -81,13 +76,6 @@ def rule_extraction_with_sls_without_validation(data, label, Number_of_Product_t
         ,_, _ \
         , _, _\
         = pack_and_store_contiguous_array_for_sls(data, label,first_split, second_split)
-
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    #   delete  validation and test set are not used in this specification of the sls
-    validation_set_data_packed_continguous, validation_set_label_bool_continguous \
-    , test_set_data_packed_continguous, test_set_label_bool_continguous =\
-        training_set_data_packed_continguous, training_set_label_bool_continguous\
-            , training_set_data_packed_continguous, training_set_label_bool_continguous
 
 
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -130,10 +118,6 @@ def rule_extraction_with_sls_without_validation(data, label, Number_of_Product_t
                                    min_prob=0,
                                    zero_init=False
                                    )
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    #   delete  comments after here
-   # boolsche_formel  = get_boolsche_formel(on_off_to_store, pos_neg_to_store)
-  #  variable_on_off= [np.unpackbits(x)] for x in on_off_to_store]
 
     return bofo.Boolsche_formel(on_off_to_store, pos_neg_to_store, Number_of_Product_term, total_error = sls_obj.total_error)
 
@@ -141,7 +125,7 @@ def calc_prediction_in_C(data, label_shape, found_formula ):
     # use C++ code to calculate prediction for given data with found formula
     num_anzahl_input_data = int(data.shape[0])
     num_of_features = found_formula.variable_pro_term
-    Number_of_Product_term = found_formula.number_of_product_term
+    Number_of_Product_term = found_formula.number_of_disjunction_term_in_SLS
     data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(data)
     space_label_bool_continguous = np.ascontiguousarray(np.empty(label_shape,np.bool), dtype=np.bool)
     pos_neg_to_store = np.ascontiguousarray(found_formula.pixel_negated_in_number_code.copy(), dtype=np.uint8)
@@ -158,18 +142,12 @@ def calc_prediction_in_C(data, label_shape, found_formula ):
 
 def pack_and_store_contiguous_array_for_sls(data, label,first_split, second_split):
     # pack data in C## compatible arrays
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    #   delete  comments after here
-   # first_split, second_split = calculate_border_values_train_test_validation(data)
 
     training_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(
         data[:first_split])
     # input_data_in_SKS = data[:first_split]  # shape(130,4,4,256)
 
     training_set_label_bool_continguous = np.ascontiguousarray(label[:first_split], dtype=np.bool)  # (1,14,14,256)
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    #   delete   input_label_in_SKS = label[:first_split]  # shape(196,)
-    input_label_in_SKS = label[:first_split]  # shape(196,)
 
     validation_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(
         data[first_split:second_split])

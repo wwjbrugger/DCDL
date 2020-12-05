@@ -9,7 +9,7 @@ import time
 
 
 
-def get_paths(Input_from_SLS, use_label_predicted_from_nn, Training_set, data_set_to_use):
+def get_paths(input_from_SLS, use_label_predicted_from_nn, training_set, data_set_to_use):
     path_to_use = {
         # where the logs of the  neural net are saved
         'logs': 'data/{}/logs/'.format(data_set_to_use),
@@ -83,14 +83,14 @@ def get_paths(Input_from_SLS, use_label_predicted_from_nn, Training_set, data_se
 
     # for comparing if the SLS blackbox approach or the DCDL approach has a higher similarity to the prediction
     # of the neural net with unknown data, we have to fill the graph with test data
-    if Training_set:
+    if training_set:
         # Graph is filled with the train data
         path_to_use['input_graph'] = path_to_use['train_data']
     else:
         # Graph is filled with the test data
         path_to_use['input_graph'] = path_to_use['test_data']
 
-    if Input_from_SLS:
+    if input_from_SLS:
         # prediction of the previous approximation is used for training the following approximation
         # default mode
         path_to_use['input_conv_2'] = 'data/{}/prediction_for_conv_1.npy'.format(data_set_to_use)
@@ -100,18 +100,18 @@ def get_paths(Input_from_SLS, use_label_predicted_from_nn, Training_set, data_se
         path_to_use['input_conv_2'] = path_to_use['g_max_pool_1']
         path_to_use['input_dense'] = 'data/{}/sign_con_2.npy'.format(data_set_to_use)
 
-    if use_label_predicted_from_nn and Training_set:
+    if use_label_predicted_from_nn and training_set:
         # SLS black box is using prediction of neural net for training
         # DCDL is using prediction of neural net for training
         path_to_use['label_dense'] = path_to_use['g_arg_max']
-    elif use_label_predicted_from_nn and not Training_set:
+    elif use_label_predicted_from_nn and not training_set:
         # SLS black box similarity on test data compared with prediction of neural net is calculated
         path_to_use['label_dense'] = path_to_use['g_arg_max']
 
-    elif not use_label_predicted_from_nn and Training_set:
+    elif not use_label_predicted_from_nn and training_set:
         # SLS black box is using true label of data for training
         path_to_use['label_dense'] = path_to_use['train_label']
-    elif not use_label_predicted_from_nn and not Training_set:
+    elif not use_label_predicted_from_nn and not training_set:
         # SLS black box is using true data label to calculate accuracy
         # DCDL  is using true data label to calculate accuracy
         path_to_use['label_dense'] = path_to_use['test_label']
@@ -187,7 +187,7 @@ def get_pandas_frame (data_set_to_use, one_against_all):
     #   In the paper BB Prediction is used instead of SLS prediction
     #   In the paper BB Train is used instead of SLS train
 
-    column_name = ['data_type', 'Used_label', 'Concat', 'SLS prediction', 'SLS train', 'Neural network']
+    column_name = ['data_type', 'Used_label', 'DCDL', 'SLS BB prediction', 'SLS BB train', 'Neural network']
     row_index = [0, 1, 2, 3]
     df = pd.DataFrame(index=row_index, columns=column_name)
     df.at[0, 'data_type'] = 'train'
@@ -206,31 +206,30 @@ def get_pandas_frame (data_set_to_use, one_against_all):
     pd.set_option('display.max_colwidth', -1)
     return df
 
-def fill_data_frame_with_concat(results, result_concat, use_label_predicted_from_nn, Training_set):
-    # fill cell in pandas frame with results from previous loop.
-    # update possibility (was not changed to be consistent with existing experiment results):
-    #   In the paper DCDL is used instead of Concat
-    if use_label_predicted_from_nn and Training_set:
-        # similarity between Concat/DCDL and prediction of NN on train data
-        results.at[0,'Concat'] = result_concat
-    if not use_label_predicted_from_nn and Training_set:
-        # accuracy  between Concat/DCDL and true label on train data
-        results.at[1,'Concat'] = result_concat
-    if use_label_predicted_from_nn and not Training_set:
-        # similarity between Concat/DCDL and prediction of NN on test data
-        results.at[2,'Concat'] = result_concat
-    if not use_label_predicted_from_nn and not Training_set:
-        # accuracy between Concat/DCDL and true label on test data
-        results.at[3,'Concat'] = result_concat
+def fill_data_frame_with_DCDL(results, result_DCDL, use_label_predicted_from_nn, training_set):
+    # fill cell in pandas frame with results of DCDL from previous loop.
+
+    if use_label_predicted_from_nn and training_set:
+        # similarity between DCDL and prediction of NN on train data
+        results.at[0,'DCDL'] = result_DCDL
+    if not use_label_predicted_from_nn and training_set:
+        # accuracy  between DCDL and true label on train data
+        results.at[1,'DCDL'] = result_DCDL
+    if use_label_predicted_from_nn and not training_set:
+        # similarity between DCDL and prediction of NN on test data
+        results.at[2,'DCDL'] = result_DCDL
+    if not use_label_predicted_from_nn and not training_set:
+        # accuracy between DCDL and true label on test data
+        results.at[3,'DCDL'] = result_DCDL
 
 
-def fill_data_frame_with_sls(results, result_SLS_train, result_SLS_test, use_label_predicted_from_nn):
+def fill_data_frame_with_sls_bb(results, result_SLS_BB_train, result_SLS_BB_test, use_label_predicted_from_nn):
     if use_label_predicted_from_nn:
-        results.at[0, 'SLS prediction'] = result_SLS_train
-        results.at[3, 'SLS prediction'] = result_SLS_test
+        results.at[0, 'SLS BB prediction'] = result_SLS_BB_train
+        results.at[3, 'SLS BB prediction'] = result_SLS_BB_test
     else:
-        results.at[1, 'SLS train'] = result_SLS_train
-        results.at[3, 'SLS train'] = result_SLS_test
+        results.at[1, 'SLS BB train'] = result_SLS_BB_train
+        results.at[3, 'SLS BB train'] = result_SLS_BB_test
 
 
 
@@ -239,147 +238,192 @@ if __name__ == '__main__':
     # start script with python acc_main [dataset] [label for one against all]
     #   e.g. python acc_main fashion 6
     # will run the experiment for the Fashion Mnist Dataset with label 6 against all.
+
     if len(sys.argv) > 1:
     # start script with parameter
         print("used Dataset: ", sys.argv [1])
         print("Label-against-all", sys.argv [2])
         if (sys.argv[1] in 'numbers') or (sys.argv[1] in'fashion') or (sys.argv[1] in 'cifar'):
             data_set_to_use = sys.argv [1]
-            one_against_all = int(sys.argv [2])
+            one_against_all_l = [int(sys.argv [2])]
         else:
             raise ValueError('You choose a dataset which is not supported. \n Datasets which are allowed are numbers(Mnist), fashion(Fashion-Mnist) and cifar')
     else:
         # values if you start script without parameter
-        data_set_to_use = 'cifar'  # 'numbers' or 'fashion'
-        one_against_all = 4
+        data_set_to_use = 'fashion'  # 'numbers' or 'fashion'
+        one_against_all_l = [4]
 
+    for one_against_all in one_against_all_l:
+        # timestr to make paths unique
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        # set size of train and validation data
+        if data_set_to_use in 'cifar':
+            size_train_nn = 45000
+        else:
+            size_train_nn = 55000
+        size_valid_nn = 5000
 
-    # If pictures should be dithered set values to 0 or 1 (see https://en.wikipedia.org/wiki/Dither)
-    dithering_used = True
-    # covert colour picture into greyscale picture before dither
-    convert_to_grey = False
+        # If pictures should be dithered set values to 0 or 1 (see https://en.wikipedia.org/wiki/Dither)
+        dithering_used = True
+        # pictures in array have a scaled into range of [0 , 1]
+        values_max_1 = True
+        # covert colour picture into greyscale picture before dither
+        convert_to_grey = False
 
-    # The experiment is structured in 4 rounds.
-    # first round:
-    #   - neural net is trained
-    #   - neural net accuracy is evaluated on test data
-    #   - DCDL is trained with the prediction of neural net
-    #   - DCDL is evaluated how good similarity to prediction on train data are
-    #   - SLS-Blackbox-Prediction is trained with the prediction of the neural net
-    #   - SLS-Blackbox-Prediction is evaluated how good similarity to prediction on train data are
-    #   - SLS-Blackbox-Prediction rules are evaluated on true label of test data
-    #  second round:
-    #   - DCDL is evaluated  how good accuracy to true label of train data are
-    #   - SLS-Blackbox-Trained is trained with true label of data
-    #   - SLS-Blackbox-Trained is evaluated how good accuracy to true label of test are
-    # third round:
-    #   - DCDL is evaluate how good similarity to the prediction of the neural net with test data are
-    # forth round:
-    #   - DCDL is evaluate how good accuracy with the true label of test data are
+        # The experiment is structured in 4 rounds.
+        # first round:
+        #   - neural net is trained
+        #   - neural net accuracy is evaluated on test data
+        #   - DCDL is trained with the prediction of neural net
+        #   - DCDL is evaluated how good similarity to prediction on train data are
+        #   - SLS-Blackbox-Prediction is trained with the prediction of the neural net
+        #   - SLS-Blackbox-Prediction is evaluated how good similarity to prediction on train data are
+        #   - SLS-Blackbox-Prediction rules are evaluated on true label of test data
+        #  second round:
+        #   - DCDL is evaluated  how good accuracy to true label of train data are
+        #   - SLS-Blackbox-Trained is trained with true label of data
+        #   - SLS-Blackbox-Trained is evaluated how good accuracy to true label of test are
+        # third round:
+        #   - DCDL is evaluate how good similarity to the prediction of the neural net with test data are
+        # forth round:
+        #   - DCDL is evaluate how good accuracy with the true label of test data are
 
-    # If neural net should be trained
-    NN_Train_l = [True, False, False, False]
-    # If DCDL should be trained
-    # Update possibility (was not changed to be consistent with existing experiment results):
-       # rename to DCDL_train_l
-    SLS_Training_l = [True, False, False, False]
-    # Use training set as input for this run ot the test set
-    Training_set_l = [True, True, False, False]
-    # Use prediction of the neural net for run as label or true label
-    use_label_predicted_from_nn_l = [True, False, True,
-                                     False]
-    # Use DCDL results of previous layer as Input in the approximation of current layer
-    Input_from_SLS = True
-    # Output on terminal at the begin of each round to structure Output
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    #    mode = ['Input data in net: train \t Label used for DCDL: Prediction of net',
-    #            'Input data in net: train \t Label used for DCDL: True label of data',
-    #            'Input data in net: test  \t Label used for DCDL: Prediction of net',
-    #            'Input data in net: test  \t Label used for DCDL: True label of data',
-
-    mode = ['train data prediction', 'train data true label', 'test data prediction', 'test data true label']
-
-    # Set k for DCDL approximation
-    Number_of_disjuntion_term_in_SLS = 40
-    # How many steps in SLS are made
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    #    maximum_steps_in_SLS
-    Maximum_Steps_in_SKS = 2000
-
-    # get empty pandas frame to store results of experiment
-    results = get_pandas_frame(data_set_to_use, one_against_all)
-
-    for i in range(len(NN_Train_l)):
-        NN_Train = NN_Train_l[i]
-        SLS_Training = SLS_Training_l[i]
-        Training_set = Training_set_l[i]
-        use_label_predicted_from_nn = use_label_predicted_from_nn_l[i]
-
-        # the get paths methods control which data are used in a run
-        path_to_use = get_paths(Input_from_SLS, use_label_predicted_from_nn, Training_set, data_set_to_use)
-
-        # get some variables concerning the net
+        # If neural net should be trained
+        NN_train_l = [True, False, False, False]
+        # If DCDL should be trained
         # Update possibility (was not changed to be consistent with existing experiment results):
-        #    should be moved outside of the loop because it needs only to be called once.
-        shape_of_kernel, stride_of_convolution, number_of_kernels, network = get_network(data_set_to_use, path_to_use,
-                                                                                         convert_to_grey)
+           # rename to DCDL_train_l
+        DCDL_train_l = [True, False, False, False]
+        # Use training set as input for this run ot the test set
+        training_set_l = [True, True, False, False]
+        # Use prediction of the neural net for run as label or true label
+        use_label_predicted_from_nn_l = [True, False, True,
+                                         False]
+        # Use DCDL results of previous layer as Input in the approximation of current layer
+        input_from_SLS = True
+        # Output on terminal at the begin of each round to structure Output
 
-        if NN_Train:
-            first.train_model(network, dithering_used, one_against_all, data_set_to_use, path_to_use, convert_to_grey, results)
-        print('\n\n\n\t\t\t', mode[i])
-        # writes (intermediate) results to files, which are used for training and evaluation DCDL
-        second.acc_data_generation(network, path_to_use)
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        # delete the following line
-        # third.visualize_kernel(one_against_all, 'data/kernel_conv_1.npy')
+        mode = ['Input data in net: train \t Label used for DCDL: Prediction of net',
+                   'Input data in net: train \t Label used for DCDL: True label of data',
+                   'Input data in net: test  \t Label used for DCDL: Prediction of net',
+                   'Input data in net: test  \t Label used for DCDL: True label of data']
 
-        # If SLS Training is True DCDL formula for first convolution  is learned.
-        # If its False the method make the necessarily preprocessing to
-        # use the logic formulas and skip the training part
-        third.SLS_Conv_1(Number_of_disjuntion_term_in_SLS, Maximum_Steps_in_SKS, stride_of_convolution, SLS_Training,
-                         path_to_use)
+        # Set k for DCDL approximation
+        number_of_disjuntion_term_in_SLS_DCDL = 40
+        number_of_disjuntion_term_in_SLS_BB = 40
+        # How many steps in SLS are made
+        maximum_steps_in_SLS_DCDL = 2000
+        maximum_steps_in_SLS_BB = 2500
 
-        # use learned DCDL formula for making prediction
-        third.prediction_Conv_1(path_to_use)
+        # get empty pandas frame to store results of experiment
+        results = get_pandas_frame(data_set_to_use=data_set_to_use,
+                                   one_against_all=one_against_all)
 
-        # If SLS Training is True DCDL formula for second convolution is learned.
-        # If its False the method make the necessarily preprocessing to
-        # use the logic formulas and skip the training part
-        third.SLS_Conv_2(Number_of_disjuntion_term_in_SLS, Maximum_Steps_in_SKS, stride_of_convolution, SLS_Training,
-                         Input_from_SLS, path_to_use)
+        for i in range(len(NN_train_l)):
+            NN_train = NN_train_l[i]
+            DCDL_train = DCDL_train_l[i]
+            training_set = training_set_l[i]
+            use_label_predicted_from_nn = use_label_predicted_from_nn_l[i]
 
-        # use learned DCDL formula for making prediction
-        third.prediction_Conv_2(path_to_use)
+            # the get paths methods control which data are used in a run
+            path_to_use = get_paths(input_from_SLS=input_from_SLS,
+                                    use_label_predicted_from_nn=use_label_predicted_from_nn,
+                                    training_set=training_set,
+                                    data_set_to_use=data_set_to_use)
 
-        # If SLS Training is True DCDL formula for dense layer is learned.
-        # If its False the method make the necessarily preprocessing to
-        # use the logic formulas and skip the training part
-        third.SLS_dense(Number_of_disjuntion_term_in_SLS, Maximum_Steps_in_SKS, SLS_Training, path_to_use)
+            # get some variables concerning the net
+            # Update possibility (was not changed to be consistent with existing experiment results):
+            #    should be moved outside of the loop because it needs only to be called once.
+            shape_of_kernel, stride_of_convolution, number_of_kernels, network = get_network(data_set_to_use=data_set_to_use,
+                                                                                             path_to_use=path_to_use,
+                                                                                             convert_to_gray=convert_to_grey)
 
-        # use learned DCDL formula for making prediction
-        # returns an accuracy/similarity score compared to the label which is used in this run
-        result_concat = third.prediction_dense(path_to_use)
+            if NN_train:
+                first.train_model(network = network ,
+                                  dithering_used = dithering_used,
+                                  one_against_all = one_against_all,
+                                  data_set_to_use = data_set_to_use,
+                                  path_to_use = path_to_use,
+                                  convert_to_grey = convert_to_grey,
+                                  results = results,
+                                  size_train_nn = size_train_nn,
+                                  size_valid_nn = size_valid_nn,
+                                  values_max_1 = values_max_1)
 
-        # Methods to train and control SLS blackbox approaches
-        if Training_set:
-            # First time trained with the prediction of the neural net fot the train set
-            # Second time trained wit the true label of the train set
+            print('\n\n\n\t\t\t', mode[i])
+            # writes (intermediate) results to files, which are used for training and evaluation DCDL
+            second.acc_data_generation(network=network, path_to_use=path_to_use)
+            # Update possibility (was not changed to be consistent with existing experiment results):
+            # delete the following line
+            # third.visualize_kernel(one_against_all, 'data/kernel_conv_1.npy')
 
-            # train SLS blackbox approach
-            # found formula is the formula which is found by the SLS algorithm
-            found_formula, result_SLS_train = sls.SLS_on_diter_data_against_true_label(path_to_use)
-            # evaluate found formula always on test data
-            result_SLS_test = sls.predicition(found_formula, path_to_use)
-            # fill result dataframe with the results of the SLS blackbox approach
-            fill_data_frame_with_sls(results, result_SLS_train, result_SLS_test, use_label_predicted_from_nn)
+            # If SLS Training is True DCDL formula for first convolution  is learned.
+            # If its False the method make the necessarily preprocessing to
+            # use the logic formulas and skip the training part
+            third.SLS_Conv_1(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+                             maximum_steps_in_SLS_DCDL = maximum_steps_in_SLS_DCDL,
+                             stride_of_convolution=stride_of_convolution,
+                             DCDL_train=DCDL_train,
+                             path_to_use=path_to_use)
 
-        # fill result dataframe with the results of the DCDL approach
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        #      should be moved in front of the SLS blackbox code
-        fill_data_frame_with_concat(results, result_concat, use_label_predicted_from_nn, Training_set )
+            # use learned DCDL formula for making prediction
+            third.prediction_Conv_1(path_to_use=path_to_use)
 
-    # print and store result frame 
-    print(results, flush=True)
-    timestr = time.strftime("%Y%m%d-%H%M%S")
-    print('path_to_store_results' , path_to_use['results']+ 'label_{}__{}'.format(one_against_all, timestr ))
-    results.to_pickle(path_to_use['results']+ 'label_{}__{}'.format(one_against_all, timestr))
+            # If SLS Training is True DCDL formula for second convolution is learned.
+            # If its False the method make the necessarily preprocessing to
+            # use the logic formulas and skip the training part
+            third.SLS_Conv_2(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+                             maximum_steps_in_SLS_DCDL=maximum_steps_in_SLS_DCDL,
+                             stride_of_convolution=stride_of_convolution,
+                             DCDL_train=DCDL_train,
+                             input_from_SLS = input_from_SLS,
+                             path_to_use = path_to_use)
+
+            # use learned DCDL formula for making prediction
+            third.prediction_Conv_2(path_to_use=path_to_use)
+
+            # If SLS Training is True DCDL formula for dense layer is learned.
+            # If its False the method make the necessarily preprocessing to
+            # use the logic formulas and skip the training part
+            third.SLS_dense(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+                            maximum_steps_in_SLS_DCDL = maximum_steps_in_SLS_DCDL,
+                            DCDL_train=DCDL_train,
+                            path_to_use=path_to_use)
+
+            # use learned DCDL formula for making prediction
+            # returns an accuracy/similarity score compared to the label which is used in this run
+            result_DCDL = third.prediction_dense(path_to_use=path_to_use)
+
+            # fill result dataframe with the results of the DCDL approach
+            fill_data_frame_with_DCDL(results =results,
+                                      result_DCDL = result_DCDL,
+                                      use_label_predicted_from_nn =use_label_predicted_from_nn ,
+                                      training_set=training_set)
+
+            # Methods to train and control SLS blackbox approaches
+            if training_set:
+                # First time trained with the prediction of the neural net fot the train set
+                # Second time trained wit the true label of the train set
+
+                # train SLS blackbox approach
+                # found formula is the formula which is found by the SLS algorithm
+                found_formula_SLS_BB, result_SLS_BB_train = sls.SLS_black_box_train(path_to_use,
+                                                                          number_of_disjuntion_term_in_SLS_BB=number_of_disjuntion_term_in_SLS_BB,
+                                                                          maximum_steps_in_SLS_BB=maximum_steps_in_SLS_BB,
+                                                                          one_against_all=one_against_all          )
+                # evaluate found formula always on test data
+                result_SLS_BB_test = sls.black_box_predicition(found_formula=found_formula_SLS_BB,
+                                                            path_to_use=path_to_use)
+                # fill result dataframe with the results of the SLS blackbox approach
+                fill_data_frame_with_sls_bb(results = results,
+                                            result_SLS_BB_train=result_SLS_BB_train,
+                                            result_SLS_BB_test=result_SLS_BB_test,
+                                            use_label_predicted_from_nn=use_label_predicted_from_nn)
+
+
+
+        # print and store result frame
+        print(results, flush=True)
+
+        print('path_to_store_results' , path_to_use['results']+ 'label_{}__{}'.format(one_against_all, timestr ))
+        results.to_pickle(path_to_use['results']+ 'label_{}__{}'.format(one_against_all, timestr))
