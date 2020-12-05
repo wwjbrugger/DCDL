@@ -1,6 +1,7 @@
 import helper_methods as help
 import numpy as np
-
+# Update possibility (was not changed to be consistent with existing experiment results):
+#     delete script. Was used for visualizing the DCDL rules for one layer. Now this experiment is in extra folder.
 def reduce_SLS_results_of_one_run():
 
     kernel_approximation = np.load('data/kernel_conv_1_approximation.npy')

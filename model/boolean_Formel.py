@@ -1,3 +1,4 @@
+# data structure to store boolean_formula in disjunctive normal form
 import numpy as np
 from termcolor import colored
 import matplotlib.pyplot as plt
@@ -8,6 +9,21 @@ from tqdm import tqdm
 
 class Boolsche_formel:
     def __init__(self, position_of_relevant_pixel, position_of_not,  number_of_product_term, number_of_relevant_variabels = None, total_error = None ):
+        # Update possibility (was not changed to be consistent with existing experiment results):
+        # use number_of_disjunction_term_in_SLS instead of number_of_product_term
+        # use number_of_relevant_variables instead of number_of_relevant_variabels
+        """
+              @param position_of_relevant_pixel: indicate if variable has an influence on evaluation of formula
+              possible values: 1 variable has influence, 0 variable has not influence
+              can be given in number code (uint8) or directly in array code
+              @param position_of_not:  indicate if variable negated.
+              possible values: 1 not negated, 0 negated
+              can be given in number code (uint8) or directly in array code
+              @param  number_of_disjunction_term_in_SLS: formula has  number_of_disjunction_term_in_SLS many disjunctions
+              @param number_of_relevant_variables: optional because of way the SLS-algorithm is calculated
+              the variables are always a multiple of 8
+              @param total_error: optional number of errors at train dataset
+              """
         self.number_of_product_term = number_of_product_term # exampel 2
         self.variable_pro_term = None # 16
 
@@ -17,6 +33,8 @@ class Boolsche_formel:
         self.pixel_negated_in_number_code = None
         self.pixel_negated_in_arrays_code = None
 
+        # Update possibility (was not changed to be consistent with existing experiment results):
+        # use formula_in_arrays_code instead of formel_in_arrays_code
         self.formel_in_arrays_code = None
         self.number_of_relevant_variabels = number_of_relevant_variabels
         self.total_error = total_error
@@ -31,6 +49,7 @@ class Boolsche_formel:
         else:
             raise ValueError('type should be np.ndarray not {}'.format(type(position_of_relevant_pixel)))
 
+    # calculate how many variables are in a disjunction
     def calc_variable_pro_term(self, position_of_relevant_pixel):
         if position_of_relevant_pixel.dtype == np.uint8:
             return int(position_of_relevant_pixel.shape[0] * 8 / self.number_of_product_term)
@@ -41,8 +60,8 @@ class Boolsche_formel:
         else:
             raise ValueError('dtype should be np.uint8 or np.ndarray not {}'.format(position_of_relevant_pixel.dtype))
 
-
-
+    # calculate number code (uint8) or array code for self.pixel_relevant_in_...
+    # depending if number code (uint8) or array code is given.
     def fill_pixel_relevant_variabels(self, position_of_relevant_pixel):
         if position_of_relevant_pixel.dtype == np.uint8:
                 pixel_relevant_in_number_code = position_of_relevant_pixel
@@ -56,6 +75,11 @@ class Boolsche_formel:
         else:
             raise ValueError('dtype should be np.uint8 or np.ndarray not {}'.format(position_of_relevant_pixel.dtype))
 
+    # calculate number code (uint8) or array code for pixel_negated_in_...
+    # depending if number code (uint8) or array code is given.
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # use fill_negated_variables instead of fill_negated_variabels
+    # use pixel_negated_in_arrays_code instead of pixel_negated_in_arrays_Code
     def fill_negated_variabels(self, position_of_not):
         if position_of_not.dtype == np.uint8:
             pixel_negated_in_number_code = position_of_not
@@ -70,6 +94,7 @@ class Boolsche_formel:
         else:
             raise ValueError('dtype should be np.uint8 or np.ndarray not {}'.format(position_of_not.dtype))
 
+    # [255, 4, 24, 16 ] -> [[1,1,1,1,1,1,1,1, 0,0,0,0,0,1,0,0], [0,0,0,1,1,0,0,0, 0,0,0,1,0,0,0,0]]
     def transform_number_code_in_arrays_code(self, number_code):
         arrays_code = []
         anzahl_number = number_code.shape[0]
@@ -91,6 +116,8 @@ class Boolsche_formel:
         numbercode = [ np.packbits(arrays_code[i-8:i]) for i in range(8,arrays_code.size+1,8)]
         return np.reshape(numbercode, -1)
 
+    # save formula in one array
+    # possible values: -1 variable is negated, 0 variable is not important, variable is not negated
     def merge_to_formula(self,pixel_relevant_in_arrays_code, pixel_negated_in_arrays_Code):
         formula= []
         for clause_number in range(pixel_relevant_in_arrays_code.shape[0]):
@@ -104,15 +131,15 @@ class Boolsche_formel:
 
         return np.array(formula)
 
+    # cast formula which is saved in one array in two arrays (pixel_relevant and pixel_negated )
+    # possible values: -1 variable is negated, 0 variable is not important, variable is not negated
     @staticmethod
     def split_fomula(fomula_in_arrays_code):
         pixel_relevant_in_arrays_code = np.where(fomula_in_arrays_code != 0, 1, 0 )
         pixel_negated_in_arrays_Code =  np.where(fomula_in_arrays_code == -1, 0, 1  )
         return pixel_relevant_in_arrays_code, pixel_negated_in_arrays_Code
 
-
-
-
+    # print formula at terminal in a nice way
     def pretty_print_formula(self, titel_of_formula = ""):
         print('\n', titel_of_formula)
         SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
@@ -163,25 +190,40 @@ class Boolsche_formel:
         #width = int(np.sqrt(pixel_in_pic))
         return pixel_in_pic, height, width
 
+    # evaluate data with formula extracted by SLS
+    # slow evaluation better use prediction_SLS_fast
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # use evaluate_allocation_like_c instead of evaluate_belegung_like_c
+    # use allocation_arr instead of belegung_arr
     def evaluate_belegung_like_c(self, belegung_arr):
         result = []
         on_off = self.pixel_relevant_in_arrays_code
         pos_neg = self.pixel_negated_in_arrays_code
+        # Update possibility (was not changed to be consistent with existing experiment results):
+        # print('number allocations: ', allocation_arr.shape[0] )
         print('Anzahl_Belegungen: ', belegung_arr.shape[0] )
+        # Update possibility (was not changed to be consistent with existing experiment results):
+        #  for i, allocation in tqdm(enumerate(allocation_arr)):
         for i, belegung in tqdm(enumerate(belegung_arr)):
+            # as soon as on clause covers the input of the whole logic formula evaluates to true
             covered_by_any_clause = 0
             for clause_nr in range(self.number_of_product_term):
+                # unless we know the opposite, we assume that the clause could cover
                 covered_by_clause = 1;
                 for position_in_clause in range(belegung_arr.shape[1]):
-                    #position = clause_nr * self.variable_pro_term + position_in_clause
-                    result_xor = belegung[position_in_clause] ^ pos_neg[clause_nr][position_in_clause]  # wenn unterschei zwischen Formel und belegung 1
-                    result_and = result_xor & on_off[clause_nr][position_in_clause]     # wenn pixel relevant ist und ein unterschie 1
+                    # if difference between formula and allocation than 1
+                    result_xor = belegung[position_in_clause] ^ pos_neg[clause_nr][position_in_clause]
+                    # if pixel is relevant and there is a difference
+                    result_and = result_xor & on_off[clause_nr][position_in_clause]
                     if result_and != 0:
+                        # clause does not cover
                         covered_by_clause = 0
                         break
                 if covered_by_clause:
+                    # there was no pixel which was relevant and was different to the clause
                     covered_by_any_clause = 1
                     break
+            # add result for allocation
             result.append(covered_by_any_clause)
         return result
 

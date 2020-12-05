@@ -33,11 +33,15 @@ def dither_pic(pic_array, values_max_1=True):
     for channel in range(pic_array.shape[3]):
         for i, pic in enumerate(pic_array[:, :, :, channel]):
             if values_max_1:
+                # if pictures are scaled into the range of 0 to 1
                 picture_grey = Image.fromarray(pic * 255)
             else:
+                # if pictures are in range  0 to 255
                 picture_grey = Image.fromarray(pic)
+            # dither picture
             picture_dither = picture_grey.convert("1")
             picture_dither_np = np.array(picture_dither)
+            # set 0 values to -1
             pic_array[i,:,:,channel] = np.where(picture_dither_np, 1, -1)
     return pic_array
 

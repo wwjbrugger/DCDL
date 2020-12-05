@@ -3,8 +3,6 @@ Scripts to explore the visualization of the rules found by the SLS algorithm.
 Entry point is the script start.py where the hyperparameters can be changed. 
 It can be changed: 
 
-`dithering_used` to select dither algorithm: ['floyd-steinberg', 'atkinson', 'jarvis-judice-ninke', 'stucki', 'burkes', 'sierra3', 'sierra2', 'sierra-2-4a', 'stevenson-arce'].
-
 `one_against_all_array` Which label should be tested against all others. 
 
 `repetitions_of_sls` How often the extraction of the logical rules should be calculated to ensure a statistically safe statement

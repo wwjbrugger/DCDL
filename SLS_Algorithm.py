@@ -5,15 +5,16 @@ import parallel_sls.python_wrapper.data_wrapper as data_wrapper
 
 
 def rule_extraction_with_sls(data, label, Number_of_Product_term, Maximum_Steps_in_SKS):
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # Dataset stats  flat_training_set.shape[1] = (196, 4, 4, 256) sollte sein (196,4,4,1)
-    # data.shape[1] Anzahl
-    first_split, second_split = calculate_border_values_train_test_validation(data)
-    num_of_features = (8 - data.shape[1] % 8) + data.shape[
-        1]  # anzahl an eingabewerte gerunfet auf das nächstgrößere Vielfaches von 8  # data.shape[1] % 8 + data.shape[1] # nötigerspeicherplatz in 8 bit stücken
 
+    first_split, second_split = calculate_border_values_train_test_validation(data)
+    # number of input variables is rounded up to a multiple of eight
+    # C++ implementation stores formula in uint 8 variables
+    num_of_features = (8 - data.shape[1] % 8) + data.shape[
+        1]
+    # how many uint8 variables are needed
     num_of_8_bit_units_to_store_feature =  int(num_of_features / 8)
 
+    #
     training_set_data_packed_continguous, training_set_label_bool_continguous \
         , validation_set_data_packed_continguous, validation_set_label_bool_continguous \
         , test_set_data_packed_continguous, test_set_label_bool_continguous\
@@ -56,7 +57,8 @@ def rule_extraction_with_sls(data, label, Number_of_Product_term, Maximum_Steps_
                                    zero_init=False
                                    )
 
-
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    #   delete  comments after here
    # boolsche_formel  = get_boolsche_formel(on_off_to_store, pos_neg_to_store)
   #  variable_on_off= [np.unpackbits(x)] for x in on_off_to_store]
 
@@ -66,8 +68,13 @@ def rule_extraction_with_sls(data, label, Number_of_Product_term, Maximum_Steps_
 Input in SLS are values in True/False Form 
 """
 def rule_extraction_with_sls_without_validation(data, label, Number_of_Product_term, Maximum_Steps_in_SKS, kernel = False ):
+    # run SLS with maximal number of training samples
     first_split, second_split = int(data.shape[0]), int(data.shape[0])
-    num_of_features = (8 - data.shape[1]) % 8 + data.shape[1] # anzahl an eingabewerte gerundet auf das nächstgrößere Vielfaches von 8  # data.shape[1] % 8 + data.shape[1] # nötigerspeicherplatz in 8 bit stücken
+    # number of input variables is rounded up to a multiple of eight
+    # C++ implementation stores formula in uint 8 variables
+    num_of_features = (8 - data.shape[1]) % 8 + data.shape[1]
+
+    # how many uint8 variables are needed
     num_of_8_bit_units_to_store_feature = int(num_of_features / 8) 
 
     training_set_data_packed_continguous, training_set_label_bool_continguous \
@@ -75,6 +82,8 @@ def rule_extraction_with_sls_without_validation(data, label, Number_of_Product_t
         , _, _\
         = pack_and_store_contiguous_array_for_sls(data, label,first_split, second_split)
 
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    #   delete  validation and test set are not used in this specification of the sls
     validation_set_data_packed_continguous, validation_set_label_bool_continguous \
     , test_set_data_packed_continguous, test_set_label_bool_continguous =\
         training_set_data_packed_continguous, training_set_label_bool_continguous\
@@ -88,7 +97,8 @@ def rule_extraction_with_sls_without_validation(data, label, Number_of_Product_t
     pos_neg_to_store = np.ascontiguousarray(np.empty((Number_of_Product_term * num_of_8_bit_units_to_store_feature,), dtype=np.uint8))
     on_off_to_store = np.ascontiguousarray(np.empty((Number_of_Product_term * num_of_8_bit_units_to_store_feature,), dtype=np.uint8))
 
-    if not isinstance(kernel, bool): # initalsation with kernel values
+    if not isinstance(kernel, bool):
+        # Initialisation with kernel values from neural net not used in experiment
         if kernel.ndim == 1:
             output_relevant, output_negated = bofo.Boolsche_formel.split_fomula(kernel)
             output_relevant_numbers = bofo.Boolsche_formel.transform_arrays_code_in_number_code(output_relevant)
@@ -120,12 +130,15 @@ def rule_extraction_with_sls_without_validation(data, label, Number_of_Product_t
                                    min_prob=0,
                                    zero_init=False
                                    )
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    #   delete  comments after here
    # boolsche_formel  = get_boolsche_formel(on_off_to_store, pos_neg_to_store)
   #  variable_on_off= [np.unpackbits(x)] for x in on_off_to_store]
 
     return bofo.Boolsche_formel(on_off_to_store, pos_neg_to_store, Number_of_Product_term, total_error = sls_obj.total_error)
 
 def calc_prediction_in_C(data, label_shape, found_formula ):
+    # use C++ code to calculate prediction for given data with found formula
     num_anzahl_input_data = int(data.shape[0])
     num_of_features = found_formula.variable_pro_term
     Number_of_Product_term = found_formula.number_of_product_term
@@ -144,6 +157,9 @@ def calc_prediction_in_C(data, label_shape, found_formula ):
 
 
 def pack_and_store_contiguous_array_for_sls(data, label,first_split, second_split):
+    # pack data in C## compatible arrays
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    #   delete  comments after here
    # first_split, second_split = calculate_border_values_train_test_validation(data)
 
     training_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(
@@ -151,6 +167,8 @@ def pack_and_store_contiguous_array_for_sls(data, label,first_split, second_spli
     # input_data_in_SKS = data[:first_split]  # shape(130,4,4,256)
 
     training_set_label_bool_continguous = np.ascontiguousarray(label[:first_split], dtype=np.bool)  # (1,14,14,256)
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    #   delete   input_label_in_SKS = label[:first_split]  # shape(196,)
     input_label_in_SKS = label[:first_split]  # shape(196,)
 
     validation_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(
@@ -170,7 +188,7 @@ def pack_and_store_contiguous_array_for_sls(data, label,first_split, second_spli
 
 
 def calculate_border_values_train_test_validation(data):
-    # berechnet grenzen um pixel in bild (#196) in 2/3 trainingset, 1/6 validationset und 1/6 testset
+    # calculate border to split data in  in 2/3 train data , 1/6 validation data und 1/6 test data
     first_split = int(data.shape[0] * 2 / 3)
     second_split = int(data.shape[0] * 2 / 3) + int(
         (data.shape[0] - int(data.shape[0] * 2 / 3)) * 1 / 2)
