@@ -250,7 +250,7 @@ if __name__ == '__main__':
             raise ValueError('You choose a dataset which is not supported. \n Datasets which are allowed are numbers(Mnist), fashion(Fashion-Mnist) and cifar')
     else:
         # values if you start script without parameter
-        data_set_to_use = 'fashion'  # 'numbers' or 'fashion'
+        data_set_to_use = 'cifar'  # 'numbers' or 'fashion'
         one_against_all_l = [4]
 
     for one_against_all in one_against_all_l:
@@ -269,6 +269,9 @@ if __name__ == '__main__':
         values_max_1 = True
         # covert colour picture into greyscale picture before dither
         convert_to_grey = False
+        # if before calculating DCDL of convolution block go through input data and make data unique
+        # speeds up calculation. If not set to through input into sls can be huge
+        unique_index = True
 
         # The experiment is structured in 4 rounds.
         # first round:
@@ -360,32 +363,34 @@ if __name__ == '__main__':
             # If SLS Training is True DCDL formula for first convolution  is learned.
             # If its False the method make the necessarily preprocessing to
             # use the logic formulas and skip the training part
-            third.SLS_Conv_1(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+            third.DCDL_Conv_1(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
                              maximum_steps_in_SLS_DCDL = maximum_steps_in_SLS_DCDL,
                              stride_of_convolution=stride_of_convolution,
                              DCDL_train=DCDL_train,
-                             path_to_use=path_to_use)
+                             path_to_use=path_to_use,
+                             unique_index=unique_index)
 
             # use learned DCDL formula for making prediction
-            third.prediction_Conv_1(path_to_use=path_to_use)
+            third.prediction_DCDL_1(path_to_use=path_to_use)
 
             # If SLS Training is True DCDL formula for second convolution is learned.
             # If its False the method make the necessarily preprocessing to
             # use the logic formulas and skip the training part
-            third.SLS_Conv_2(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+            third.SLS_DCDL_2(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
                              maximum_steps_in_SLS_DCDL=maximum_steps_in_SLS_DCDL,
                              stride_of_convolution=stride_of_convolution,
                              DCDL_train=DCDL_train,
                              input_from_SLS = input_from_SLS,
-                             path_to_use = path_to_use)
+                             path_to_use = path_to_use,
+                             unique_index=unique_index)
 
             # use learned DCDL formula for making prediction
-            third.prediction_Conv_2(path_to_use=path_to_use)
+            third.prediction_DCDL_2(path_to_use=path_to_use)
 
             # If SLS Training is True DCDL formula for dense layer is learned.
             # If its False the method make the necessarily preprocessing to
             # use the logic formulas and skip the training part
-            third.SLS_dense(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+            third.DCDL_dense(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
                             maximum_steps_in_SLS_DCDL = maximum_steps_in_SLS_DCDL,
                             DCDL_train=DCDL_train,
                             path_to_use=path_to_use)

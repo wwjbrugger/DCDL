@@ -68,6 +68,8 @@ class network_two_convolution():
         self.step = tf.compat.v1.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
 
         # Evaluate model
+        # self.prediction has form [[p1,p2],[p1,p2], ...]
+        # arg_max get index of higher value of the prediction
         self.one_hot_out = tf.compat.v1.argmax(self.prediction, 1)
         self.hits = tf.compat.v1.equal(self.one_hot_out, tf.compat.v1.argmax(self.True_Label, 1))
         self.accuracy = tf.compat.v1.reduce_mean(tf.compat.v1.cast(self.hits, tf.compat.v1.float32))

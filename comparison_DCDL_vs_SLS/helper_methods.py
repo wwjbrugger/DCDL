@@ -9,6 +9,7 @@ from skimage.measure import block_reduce
 
 
 
+
 def calculate_padding_parameter(shape_input_pic, filter_size, stride, ):
     # calculate how many zeros have to be pad on input to perform convolution
     in_height = shape_input_pic[1]
@@ -72,17 +73,6 @@ def permutate_and_flaten_2(data, label, channel_label):
     return data_flatten, label_set_flat
 
 
- # Update possibility (was not changed to be consistent with existing experiment results):
- # delete is not used at all
-def permutate_and_flaten_3(data, label, channel_label):
-    number_kernels = data.shape[0]
-    training_set_flat = data.reshape((number_kernels, -1))
-    label_set_flat = label[:, :, :, channel_label].reshape(number_kernels)
-    return training_set_flat, label_set_flat
-
-
-
-
 def transform_to_boolean(array):
     # cast data from -1 to 0.
     # 0 is interpreted as False
@@ -91,7 +81,7 @@ def transform_to_boolean(array):
     return boolean_array
 
 
-def visualize_singel_kernel(kernel, kernel_width, titel, set_vmin_vmax = True):
+def visualize_singel_kernel(kernel, kernel_width, title, set_vmin_vmax = True):
     f = plt.figure()
     ax = f.add_subplot(111)
     z = np.reshape(kernel, (kernel_width, kernel_width))
@@ -100,32 +90,9 @@ def visualize_singel_kernel(kernel, kernel_width, titel, set_vmin_vmax = True):
     else:
         mesh = ax.pcolormesh(z)
     plt.colorbar(mesh, ax=ax)
-    plt.title(titel, fontsize=20)
+    plt.title(title, fontsize=20)
     plt.gca().set_aspect('equal', adjustable='box')
     plt.gca().invert_yaxis()
-    plt.show()
-
-
-def visualize_multi_pic(pic_array, label_array, titel):
-    """ show 10 first  pictures """
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    # can be deleted is not used
-    for i in range(pic_array.shape[3]):
-        ax = plt.subplot(4, 3, i + 1)
-        plt.xticks([])
-        plt.yticks([])
-        plt.grid(False)
-        mesh = ax.pcolormesh(pic_array[:, :, 0, i], cmap='gray', vmin=-1, vmax=1)
-        plt.colorbar(mesh, ax=ax)
-        plt.title(label_array[i])
-        plt.gca().set_aspect('equal', adjustable='box')
-
-        # plt.imshow(pic_array[:,:,0,i], cmap=colormap)
-        # plt.xlabel(label_array[i])
-
-    st = plt.suptitle(titel, fontsize=14)
-    st.set_y(1)
-    plt.tight_layout()
     plt.show()
 
 
@@ -190,66 +157,6 @@ def reduce_kernel(input, mode):
         raise ValueError("{} ist not a valid mode.".format(mode))
 
 
-def sls_convolution (Number_of_Product_term, Maximum_Steps_in_SKS, stride_of_convolution, data_sign, label_sign, used_kernel, result= None, path_to_store = None, SLS_Training = True) :
-    # prepare data for learning/using DCDL rules to approximate convolutional layer
-    kernel_width = used_kernel.shape[0]
-
-    # get subsamples of data as they would be under the kernel in a convolution operation
-    data_flat, label = prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolution)
-    np.save(path_to_store + '_data_flat.npy', data_flat)
-
-    # list to collect n many formulas if n kernels are used.
-    logic_formulas = []
-    # save preprocessed data for prediction
-    print('Shape of flatten data: ', data_flat.shape )
-    if SLS_Training:
-        # DCDL rules are learned. This part is skipped if DCDL is used in prediction mode
-        # make input data unique, speeds up computation in experiment the performance was not harmed through this step
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        #    make this step optional
-        _, unique_index = np.unique(data_flat, return_index=True, axis=0)
-        data_flat = data_flat[unique_index]
-        print('Shape of flatten data after making unique', data_flat.shape )
-        for channel in range(label.shape[3]):
-            # iterate through all channels of the label. For every channel a logical rule is learned
-            # Update possibility (was not changed to be consistent with existing experiment results):
-            #   change to  Rule extraction for kernel_conv {}
-            print("Ruleextraction for kernel_conv_1 {} ".format(channel))
-            #label_flat = label[:, :, :, channel].reshape(data_flat.shape[0])
-            label_flat = label[:, :, :, channel].reshape(-1)[unique_index]
-
-            # get rule for approximating the convolution
-            found_formula = \
-                SLS.rule_extraction_with_sls_without_validation(data_flat,label_flat, Number_of_Product_term,
-                                                               Maximum_Steps_in_SKS)
-            found_formula.shape_input_data = data_sign.shape
-            found_formula.shape_output_data = label.shape
-            logic_formulas.append(found_formula)
-            # Update possibility (was not changed to be consistent with existing experiment results):
-            #   change accuracy
-            accurancy = (data_flat.shape[0] - found_formula.total_error) / data_flat.shape[0]
-            print("Accurancy of SLS: ", accurancy, "\n")
-
-            if result is not None:
-                # calculate manuel the convolution done in the neural net
-                # for debugging not used in experiment.
-                label_self_calculated = calculate_convolution(data_flat, used_kernel[:, :, :, channel], result)
-
-
-        if path_to_store is not None:
-            # store all found rules for making prediction later
-            pickle.dump(logic_formulas, open(path_to_store, "wb"))
-    return logic_formulas
-
-  # Update possibility (was not changed to be consistent with existing experiment results):
-    # delete
-"""
-        formel_in_array_code = []
-        for formel in logic_formulas:
-            formel_in_array_code.append(np.reshape(formel.formula_in_arrays_code, (-1, kernel_width, kernel_width)))
-        np.save(path_to_store + '_in_array_code.npy', formel_in_array_code)
-"""
-
 
 def prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolution):
     # preprocessing for using SLS Algorithm
@@ -267,55 +174,21 @@ def prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolut
     return data_bool_flat, label_bool
 
 
-def sls_dense_net (Number_of_Product_term, Maximum_Steps_in_SKS, data, label, path_to_store = None, SLS_Training = True) :
-    # control code for approximating the dense layer in the NN with DCDL
-    data = transform_to_boolean(data)
-    # bring data with channels into a flat form
-    data_flat = np.reshape(data, (data.shape[0], -1))
-    # path_to_store is path_to_use['logic_rules_dense']
-    np.save(path_to_store + '_data_flat.npy', data_flat)
-    print('Shape of flatten data: ', data_flat.shape )
-    if SLS_Training:
-        label_set_one_hot = transform_to_boolean(label)
-        # get the first position of the one-hot-label
-        # If data belongs to  label 'one' then a 1 is writen out
-        # If data belongs to  label rest then a 0 is writen out
-        label = np.array([label[0] for label in label_set_one_hot])
-        # Use SLS to find logical formula to approximate the dense layer
-        # the formula is stored in a self write data class
-        found_formula = \
-            SLS.rule_extraction_with_sls_without_validation(data_flat,label, Number_of_Product_term,
-                                                           Maximum_Steps_in_SKS)
 
-        found_formula.shape_input_data = data.shape
-        found_formula.shape_output_data = label.shape
-
-        # calculate accuracy on train data
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        # change to accuracy
-        accurancy = (data_flat.shape[0] - found_formula.total_error) / data_flat.shape[0]
-        print("Accurancy of SLS: ", accurancy, '\n')
-
-        if path_to_store is not None:
-            pickle.dump(found_formula, open(path_to_store, "wb"))
-
-
-def prediction_SLS_fast (data_flat, label, found_formula, path_to_store_prediction = None):
+def prediction_SLS_fast (data_flat, label, found_formula, path_to_store_prediction):
     # uses C++ code to calculate prediction with the found formula
     print('Shape of Input Data: ', data_flat.shape)
     if label.ndim == 1:
-        # cast Output of NN in last layer [1,0,1,0 ...] to [1,-1,1,-1 ...] as expected by SLS.calc_prediction_in_C
+        # cast Output [1,0,1,0 ...] to [1,-1,1,-1 ...] as expected by SLS.calc_prediction_in_C
+
         label = np.array([-1 if l == 0 else 1 for l in label])
+
         print('Calculate prediction')
         prediction = SLS.calc_prediction_in_C(data_flat, label.flatten().shape, found_formula)
         prediction = np.reshape(prediction, label.shape)
 
     elif label.ndim == 2:
-        # cast One-hot-encoded label  [[0,1], [1,0], ...] to [-1,1, ...] as expected by SLS.calc_prediction_in_C
-        label = np.array([-1 if l[1]==0 else 1 for l in label])
-        print('Calculate prediction')
-        prediction = SLS.calc_prediction_in_C(data_flat, label.flatten().shape , found_formula)
-        prediction = np.reshape(prediction, label.shape)
+        raise ValueError('label should not be two dimensional')
 
     else:
         # Output of NN with more than one channel. Channles are already in form [-1,1, ...]
@@ -330,12 +203,12 @@ def prediction_SLS_fast (data_flat, label, found_formula, path_to_store_predicti
     # calculate accuracy
     # Update possibility (was not changed to be consistent with existing experiment results):
     # change to accuracy
-    Accuracy = (label.size-error)/label.size
+    accuracy = (label.size-error)/label.size
     print('Error of prediction', error)
-    print('Acc', Accuracy)
+    print('Accuracy', accuracy)
     if path_to_store_prediction is not None:
         np.save(path_to_store_prediction, prediction)
-    return Accuracy
+    return accuracy
 
 def max_pooling (data):
     # max polling as in the neural net
@@ -366,9 +239,6 @@ def graph_with_error_bar(x_values, y_values, y_stdr, title = "",x_axis_title="",
     ax.set_ylabel(y_axis_tile)
     ax.set_title(title)
     if fix_y_axis:
-        min = np.min(y_values)
-        max = np.max(y_values)
-        #ax.set_ylim((min - 0.05), (max + 0.05))
         ax.set_ylim((0.5), (1))
 
     if save_path:

@@ -246,7 +246,7 @@ def sls_convolution ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, s
 """
         formel_in_array_code = []
         for formel in logic_formulas:
-            formel_in_array_code.append(np.reshape(formel.formel_in_arrays_code, (-1, kernel_width, kernel_width)))
+            formel_in_array_code.append(np.reshape(formel.formula_in_arrays_code, (-1, kernel_width, kernel_width)))
         np.save(path_to_store + '_in_array_code.npy', formel_in_array_code)
 """
 def prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolution):

@@ -18,6 +18,7 @@ if __name__ == '__main__':
     stride_of_convolution = 28
     repetitions_of_sls = 1
     shape_of_kernel = (28,28)
+    values_max_1 = True
     network = first.model_one_convolution.network_one_convolution(shape_of_kernel=shape_of_kernel,
                                                                   nr_training_itaration=200,
                                                                   stride=stride_of_convolution, check_every=10,

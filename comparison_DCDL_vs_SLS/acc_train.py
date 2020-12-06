@@ -5,7 +5,7 @@ import comparison_DCDL_vs_SLS.data.fashion.mnist_fashion as fashion
 import comparison_DCDL_vs_SLS.data.numbers.mnist_dataset as numbers
 import comparison_DCDL_vs_SLS.data.cifar.cifar_dataset as cifar
 import comparison_DCDL_vs_SLS.dithering as dith
-import helper_methods as help
+import helper_methods as helper_methods
 import matplotlib.pyplot as plt
 
 
@@ -133,9 +133,9 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
 
     # convert colour picture in greyscale pictures. Is not used in experiment
     if convert_to_grey:
-        train_nn = help.convert_to_grey(pic_array = train_nn)
-        val = help.convert_to_grey(pic_array = val)
-        test = help.convert_to_grey(pic_array= test)
+        train_nn = helper_methods.convert_to_grey(pic_array = train_nn)
+        val = helper_methods.convert_to_grey(pic_array = val)
+        test = helper_methods.convert_to_grey(pic_array= test)
         dith.visualize_pic(pic_array=train_nn,
                            label_array=label_train_nn,
                            class_names=class_names,
@@ -158,13 +158,13 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
                            colormap= plt.cm.Greys)
 
     # convert for one-against-all testing one-hot label with 10 classes in one-hot label with two classes ([one, rest])
-    label_train_nn = help.one_class_against_all(array_label = label_train_nn,
+    label_train_nn = helper_methods.one_class_against_all(array_label = label_train_nn,
                                                 one_class= one_against_all,
                                                 number_classes_output = number_class_to_predict)
-    label_val = help.one_class_against_all(array_label =  label_val,
+    label_val = helper_methods.one_class_against_all(array_label =  label_val,
                                            one_class = one_against_all,
                                            number_classes_output = number_class_to_predict)
-    label_test = help.one_class_against_all(array_label = label_test,
+    label_test = helper_methods.one_class_against_all(array_label = label_test,
                                             one_class = one_against_all,
                                             number_classes_output=number_class_to_predict)
 

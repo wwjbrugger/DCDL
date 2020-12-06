@@ -171,21 +171,36 @@ def visulize_input_data(pic):
     plt.show()
 
 
-def one_class_against_all(label_list, one_against_all):
+# def one_class_against_all(label_list, one_against_all):
+#     """
+# converts an array with one_hot_vector for any number of classes into a one_hot_vector,
+#  whether an example belongs to 'one' class or all class
+#     """
+#     shape_output = (len(label_list), 2)
+#     label_one_class_against_all = np.zeros(shape_output, dtype=int)
+#     for i, one_hot_vector in enumerate(label_list):
+#         if one_hot_vector.argmax() == one_against_all:
+#             label_one_class_against_all[i, 0] = 1
+#         else:
+#             label_one_class_against_all[i, -1] = 1
+#     return label_one_class_against_all
+
+def one_class_against_all(array_label, one_class, number_classes_output):
     """
-converts an array with one_hot_vector for any number of classes into a one_hot_vector,
- whether an example belongs to 'one' class or all class
+    converts an array with one_hot_vector for any number of classes into a one_hot_vector,
+    whether an example belongs to one class or not
     """
-    shape_output = (len(label_list), 2)
+    shape_output = (len(array_label), number_classes_output)
     label_one_class_against_all = np.zeros(shape_output, dtype=int)
-    for i, one_hot_vector in enumerate(label_list):
-        if one_hot_vector.argmax() == one_against_all:
+    for i, one_hot_vector in enumerate(array_label):
+        if one_hot_vector.argmax() == one_class:
             label_one_class_against_all[i, 0] = 1
         else:
             label_one_class_against_all[i, -1] = 1
+    num_elements_one_class = int(label_one_class_against_all[:, 0].sum())
+    num_elements_rest_class = int(label_one_class_against_all[:, 1].sum())
+    print('number one label in set: {}     number rest label in set {} '.format(num_elements_one_class, num_elements_rest_class))
     return label_one_class_against_all
-
-
 
 
 def reduce_kernel(input, mode):
@@ -246,7 +261,7 @@ def sls_convolution ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, s
 """
         formel_in_array_code = []
         for formel in logic_formulas:
-            formel_in_array_code.append(np.reshape(formel.formel_in_arrays_code, (-1, kernel_width, kernel_width)))
+            formel_in_array_code.append(np.reshape(formel.formula_in_arrays_code, (-1, kernel_width, kernel_width)))
         np.save(path_to_store + '_in_array_code.npy', formel_in_array_code)
 """
 def prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolution):

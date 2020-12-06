@@ -8,7 +8,7 @@ import sys
 import numpy as np
 from scipy.stats import stats
 
-import comparison_DCDL_vs_SLS.helper_methods as help
+import comparison_DCDL_vs_SLS.helper_methods as helper_methods
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
@@ -61,7 +61,7 @@ def sim_DCDL_NN():
             y_stdr.append(s)
             x_values.append(value[-1])
         # plot similarity between DCDL approach and the prediction of the neural net on training data for every label with std
-        help.graph_with_error_bar(x_values, y_values, y_stdr, titel, fix_y_axis=True, x_axis_title="label", y_axis_tile='similarity [%]',
+        helper_methods.graph_with_error_bar(x_values, y_values, y_stdr, titel, fix_y_axis=True, x_axis_title="label", y_axis_tile='similarity [%]',
                                   save_path='evaluation/sim_DCDL_NN_{}.png'.format(dataset))
 
 def average_accurancy_on_test_data(path_to_results, titel, ax):
@@ -92,7 +92,7 @@ def average_accurancy_on_test_data(path_to_results, titel, ax):
     x_values = ['DCDL', 'BB\nPrediction', 'BB\nLabel', 'NN']
     y_values = [mean_deep_rule_set,  mean_sls_black_box_prediction, mean_sls_black_box_label, mean_neural_net]
     y_stdr=[stdr_deep_rule_set, stdr_sls_black_box_prediction, stdr_sls_black_box_label, stdr_neural_net]
-    help.graph_with_error_bar(x_values, y_values, y_stdr, titel, fix_y_axis=True, x_axis_title="",
+    helper_methods.graph_with_error_bar(x_values, y_values, y_stdr, titel, fix_y_axis=True, x_axis_title="",
                          y_axis_tile='accuracy [%]', ax_out=ax)
 
 def DCDL_minus_SLS_prediction():
@@ -120,7 +120,7 @@ def DCDL_minus_SLS_prediction():
         x_values.append(dataset)
         y_values.append(mean)
         y_stdr.append(stdr)
-    help.graph_with_error_bar(x_values, y_values, y_stdr, title='', x_axis_title=" ", y_axis_tile='sim. diff. DCDL - SLS [%]',
+    helper_methods.graph_with_error_bar(x_values, y_values, y_stdr, title='', x_axis_title=" ", y_axis_tile='sim. diff. DCDL - SLS [%]',
                          save_path= 'evaluation/similarity_diff_SLS_DCDL.png' )
 
 
@@ -170,7 +170,7 @@ def students_t_test():
                                                                                           two_tailed_p_test))
         # save result of student-t-test for dataset as html file
         with pd.option_context('display.precision', 2):
-            html = scipy_student_t_test_p_value.style.applymap(help.mark_small_values).render()
+            html = scipy_student_t_test_p_value.style.applymap(helper_methods.mark_small_values).render()
         with open('evaluation/students-test_scipy{}.html'.format(dataset), "w") as f:
             f.write(html)
 
@@ -244,7 +244,7 @@ def corrected_dependent_t_test( n_training_folds, n_test_folds, alpha):
                                                                                           p))
         # save result of student-t-test for dataset as html file
         with pd.option_context('display.precision', 2):
-            html = corrected_dependent_t_test.style.applymap(help.mark_small_values).render()
+            html = corrected_dependent_t_test.style.applymap(helper_methods.mark_small_values).render()
         with open('evaluation/students-test_corrected_{}.html'.format(dataset), "w") as f:
             f.write(html)
 
