@@ -93,7 +93,7 @@ def visualize_singel_kernel(kernel, kernel_width, title, set_vmin_vmax = True):
 
 
 def calculate_convolution(data_flat, kernel, true_label):
-    # calculate convolution by hand probably useful for
+    # calculate convolution by hand probably useful for debugging
     label = []
     kernel_flaten = np.reshape(kernel, (-1))
     for row in data_flat:
