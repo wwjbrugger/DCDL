@@ -46,16 +46,12 @@ def data_in_kernel(arr, stepsize=2, width=4):
 
 def permutate_and_flaten(training_set_kernel, label_set, channel_training, channel_label):
     # flatten data and label
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    # delete comments with permutation stuff
     number_kernels = training_set_kernel.shape[0]
-    # random_indices = np.random.permutation(number_kernels)
     training_set_flat = training_set_kernel[:, :, :, channel_training].reshape((number_kernels, -1))
-    # training_set_flat_permutated = training_set_flat[random_indices]
     label_set_flat = label_set[:, :, :, channel_label].reshape(number_kernels)
-    # label_set_flat_permutated = label_set_flat[random_indices]
+
     return training_set_flat, label_set_flat
-    # return training_set_flat_permutated, label_set_flat_permutated
+
 
  # Update possibility (was not changed to be consistent with existing experiment results):
  # not used in compare_DCDL_vs_SLS this method has logic to iterate through input data and chanel in the method.
@@ -103,17 +99,6 @@ def calculate_convolution(data_flat, kernel, true_label):
     for row in data_flat:
         label.append(np.dot(row, kernel_flaten))
     return label
-
-
-def visulize_input_data(pic):
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    # can be deleted is not used
-    hight = int(np.sqrt(pic.size))
-    pic = np.reshape(pic, (hight, hight))
-
-    plt.imshow(pic, cmap='gray')
-
-    plt.show()
 
 
 def one_class_against_all(array_label, one_class, number_classes_output):
@@ -201,8 +186,6 @@ def prediction_SLS_fast (data_flat, label, found_formula, path_to_store_predicti
     # cast boolean values False -> -1 ans Truth to 1
     error = np.sum(label != np.where(prediction, 1 ,-1))
     # calculate accuracy
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    # change to accuracy
     accuracy = (label.size-error)/label.size
     print('Error of prediction', error)
     print('Accuracy', accuracy)

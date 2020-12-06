@@ -8,7 +8,7 @@ import model.Gradient_helpLayers_convBlock as helper
 #tf.compat.v1compat.v1.logging.set_verbosity(tf.compat.v1compat.v1.logging.ERROR)
 class network_two_convolution():
 
-    def __init__(self,path_to_use, name_of_model = "bla",  learning_rate = 1E-3,  number_classes=10,
+    def __init__(self,path_to_store_model, name_of_model = "bla",  learning_rate = 1E-3,  number_classes=10,
                  input_shape = (None,28,28,1), nr_training_itaration = 1500,
                  batch_size=2**10, print_every = 2000, check_every = 25,
                  number_of_kernel = 10, shape_of_kernel = (3,3), stride = 2, input_channels = 1,
@@ -23,7 +23,7 @@ class network_two_convolution():
         self.print_every = print_every
         self.check_every = check_every
         #self.folder_to_save = os.path.dirname(sys.argv[0]) + path_to_use['store_model'] + str(name_of_model)
-        self.folder_to_save = path_to_use['store_model'] + str(name_of_model)
+        self.folder_to_save = path_to_store_model + str(name_of_model)
         self.name_of_model = name_of_model
         self.number_of_kernel = number_of_kernel
         self.shape_of_kernel = shape_of_kernel

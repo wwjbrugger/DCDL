@@ -18,9 +18,7 @@ The script **sls_one_against_all.py** contains the methods to investigate how th
 SLS algorithm performs directly on the data set.
 
 The script **acc_extracting_pictures.py** the DCDL approach is trained. 
-The methods for making predictions with DCDL are used there. 
-##### Update possibility (was not changed to be consistent with existing experiment results):
-#####    rename acc_extracting_pictures.py in extract_DCDL_Rules
+The methods for making predictions with DCDL are used there.
 
 The script **dithering.py** uses the floyd-steinberg algorithm to dither pictures (set pixel to 0 or 1).
 
@@ -31,6 +29,3 @@ The script **evaluate_result_frame.py** analyse the results of several runs of t
 The script **helper_methods.py** contain methods which are needed at multiple scripts .
 See comments in methods for more details. 
 
-The script **acc_reduce_kernel.py** was used for visualization of the kernels 
-##### Update possibility (was not changed to be consistent with existing experiment results):
-#####   delete this script it is not used in the experiment  

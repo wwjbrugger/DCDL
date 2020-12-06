@@ -51,9 +51,8 @@ def sim_DCDL_NN():
         y_stdr=[]
         for i in range (len(table)):
             # get similarity values of DCDL label are used as key in dic
-            # Update possibility (was not changed to be consistent with existing experiment results):
-            #    Change Concat to DCDL
-            d[label[i]].append(table[i].at[0, 'Concat'])
+
+            d[label[i]].append(table[i].at[0, 'DCDL'])
         for value in d:
             # iterate through similarity values of DCDL for one label
             m, s = calculate_mean_std(d[value])
@@ -75,13 +74,9 @@ def average_accurancy_on_test_data(path_to_results, titel, ax):
     neural_net = []
     for table in tables:
         # get accuracy of all approaches
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        #    Change Concat to DCDL
-        #    Change SLS prediction to BB Prediction
-        #    Change SLS train to BB train
-        deep_rule_set.append(table.at[3,'Concat'])
-        sls_black_box_prediction.append(table.at[3,'SLS prediction'])
-        sls_black_box_label.append(table.at[3, 'SLS train'])
+        deep_rule_set.append(table.at[3,'DCDL'])
+        sls_black_box_prediction.append(table.at[3,'BB Prediction'])
+        sls_black_box_label.append(table.at[3, 'BB train'])
         neural_net.append(np.float64(table.at[3,'Neural network']))
     # calculate statistics for approaches
     mean_deep_rule_set, stdr_deep_rule_set = calculate_mean_std(deep_rule_set)
@@ -111,10 +106,7 @@ def DCDL_minus_SLS_prediction():
         Concat_minus_SLS_prediction = []
         for pd_file in table:
             #for every pandas frame calculate   similarity DCDL -  similarity SLS Prediction
-            # Update possibility (was not changed to be consistent with existing experiment results):
-            #    Change Concat to DCDL
-            #    Change SLS prediction to BB Prediction
-            Concat_minus_SLS_prediction.append(pd_file.at[0, 'Concat'] - pd_file.at[0, 'SLS prediction'])
+            Concat_minus_SLS_prediction.append(pd_file.at[0, 'DCDL'] - pd_file.at[0, 'BB Prediction'])
         mean, stdr = calculate_mean_std(Concat_minus_SLS_prediction)
 
         x_values.append(dataset)
@@ -136,12 +128,8 @@ def students_t_test():
         path_to_result = join('data', dataset, 'results')
         # get all result frames of one dataset
         tables, label = load_tables(path_to_result)
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        #    Change Concat to DCDL
-        #    Change SLS prediction to BB Prediction
-        #    Change SLS train to BB train
-        methods = ['Concat', 'SLS prediction', 'SLS train', 'Neural network']
-        # uses t-test from syipy
+        methods = ['DCDL', 'SLS BB prediction', 'SLS BB train', 'Neural network']
+        # uses t-test from scipy
         scipy_student_t_test_p_value = pd.DataFrame(0,index= methods, columns= methods, dtype=float)
         for i in range(len(methods)):
             # fill diagonals with ones
@@ -206,11 +194,8 @@ def corrected_dependent_t_test( n_training_folds, n_test_folds, alpha):
         path_to_result = join('data', dataset, 'results')
         # get all result frames of one dataset
         tables, label = load_tables(path_to_result)
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        #    Change Concat to DCDL
-        #    Change SLS prediction to BB Prediction
-        #    Change SLS train to BB train
-        methods = ['Concat', 'SLS prediction', 'SLS train', 'Neural network']
+
+        methods = [ 'DCDL', 'SLS BB prediction', 'SLS BB train', 'Neural network']
 
         corrected_dependent_t_test = pd.DataFrame(0,index= methods, columns= methods, dtype=float)
         for i in range(len(methods)):

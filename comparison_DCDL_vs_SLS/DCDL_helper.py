@@ -22,17 +22,13 @@ def sls_convolution (number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS
     if DCDL_train:
         # DCDL rules are learned. This part is skipped if DCDL is used in prediction mode
         # make input data unique, speeds up computation in experiment the performance was not harmed through this step
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        #    make this step optional
         if unique_index:
             _, unique_index = np.unique(data_flat, return_index=True, axis=0)
         data_flat = data_flat[unique_index]
         print('Shape of flatten data after making unique', data_flat.shape )
         for channel in range(label.shape[3]):
             # iterate through all channels of the label. For every channel a logical rule is learned
-            # Update possibility (was not changed to be consistent with existing experiment results):
-            #   change to  Rule extraction for kernel_conv {}
-            print("Ruleextraction for kernel_conv_1 {} ".format(channel))
+            print("ule extraction for kernel_conv {}".format(channel))
             #label_flat = label[:, :, :, channel].reshape(data_flat.shape[0])
             label_flat = label[:, :, :, channel].reshape(-1)[unique_index]
 

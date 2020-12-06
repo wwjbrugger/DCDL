@@ -1,7 +1,7 @@
 import model.two_conv_block_model as model_two_convolution
 import comparison_DCDL_vs_SLS.acc_train as first
 import comparison_DCDL_vs_SLS.acc_data_generation as second
-import comparison_DCDL_vs_SLS.acc_extracting_pictures as third
+import comparison_DCDL_vs_SLS.acc_extract_DCDL_rules as third
 import sys
 import pandas as pd
 import comparison_DCDL_vs_SLS.sls_one_against_all as sls
@@ -119,7 +119,7 @@ def get_paths(input_from_SLS, use_label_predicted_from_nn, training_set, data_se
     return path_to_use
 
 
-def get_network(data_set_to_use, path_to_use, convert_to_gray):
+def get_network(data_set_to_use, path_to_store_model, convert_to_gray):
     # get network with two convolution and one dense layer at the end
     # net for dataset 'numbers' (MNIST) and 'fashion' (Fashion-MNIST)
     # have one colour channel as input writen in from [num_pic, pic_width, pic_height, num_colour_channel]
@@ -138,7 +138,8 @@ def get_network(data_set_to_use, path_to_use, convert_to_gray):
     name_of_model = '{}_two_conv_2x2'.format(data_set_to_use)
 
     if data_set_to_use in 'numbers' or data_set_to_use in 'fashion':
-        network = model_two_convolution.network_two_convolution(path_to_use, name_of_model=name_of_model,
+        network = model_two_convolution.network_two_convolution(path_to_store_model = path_to_store_model
+                                                                , name_of_model=name_of_model,
                                                                 shape_of_kernel=shape_of_kernel,
                                                                 nr_training_itaration=2000,
                                                                 stride=stride_of_convolution,
@@ -157,7 +158,8 @@ def get_network(data_set_to_use, path_to_use, convert_to_gray):
             input_shape = (None, 32, 32, 3)
 
         # get the neural net which will be trained later
-        network = model_two_convolution.network_two_convolution(path_to_use, name_of_model=name_of_model,
+        network = model_two_convolution.network_two_convolution(path_to_store_model = path_to_store_model,
+                                                                name_of_model=name_of_model,
                                                                 shape_of_kernel=shape_of_kernel,
                                                                 nr_training_itaration=2000,
                                                                 stride=stride_of_convolution,
@@ -182,10 +184,6 @@ def get_pandas_frame (data_set_to_use, one_against_all):
     # the Used_label column represents if the output of the Neural net (similarity measure)
     # or the true label (accuracy measure) was used for training/testing
 
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    #   In the paper DCDL is used instead of Concat
-    #   In the paper BB Prediction is used instead of SLS prediction
-    #   In the paper BB Train is used instead of SLS train
 
     column_name = ['data_type', 'Used_label', 'DCDL', 'SLS BB prediction', 'SLS BB train', 'Neural network']
     row_index = [0, 1, 2, 3]
@@ -250,7 +248,7 @@ if __name__ == '__main__':
             raise ValueError('You choose a dataset which is not supported. \n Datasets which are allowed are numbers(Mnist), fashion(Fashion-Mnist) and cifar')
     else:
         # values if you start script without parameter
-        data_set_to_use = 'cifar'  # 'numbers' or 'fashion'
+        data_set_to_use = 'numbers'  # 'numbers' or 'fashion'
         one_against_all_l = [4]
 
     for one_against_all in one_against_all_l:
@@ -294,8 +292,6 @@ if __name__ == '__main__':
         # If neural net should be trained
         NN_train_l = [True, False, False, False]
         # If DCDL should be trained
-        # Update possibility (was not changed to be consistent with existing experiment results):
-           # rename to DCDL_train_l
         DCDL_train_l = [True, False, False, False]
         # Use training set as input for this run ot the test set
         training_set_l = [True, True, False, False]
@@ -318,9 +314,20 @@ if __name__ == '__main__':
         maximum_steps_in_SLS_DCDL = 2000
         maximum_steps_in_SLS_BB = 2500
 
+        # call path method to get path where to store the network.
+        path_to_use = get_paths(input_from_SLS=input_from_SLS,
+                                use_label_predicted_from_nn=use_label_predicted_from_nn_l[0],
+                                training_set=training_set_l[0],
+                                data_set_to_use=data_set_to_use)
+
+        shape_of_kernel, stride_of_convolution, number_of_kernels, network = get_network(data_set_to_use=data_set_to_use,
+                                                                                         path_to_store_model=path_to_use['store_model'],
+                                                                                         convert_to_gray=convert_to_grey)
+
         # get empty pandas frame to store results of experiment
         results = get_pandas_frame(data_set_to_use=data_set_to_use,
                                    one_against_all=one_against_all)
+
 
         for i in range(len(NN_train_l)):
             NN_train = NN_train_l[i]
@@ -337,9 +344,10 @@ if __name__ == '__main__':
             # get some variables concerning the net
             # Update possibility (was not changed to be consistent with existing experiment results):
             #    should be moved outside of the loop because it needs only to be called once.
-            shape_of_kernel, stride_of_convolution, number_of_kernels, network = get_network(data_set_to_use=data_set_to_use,
-                                                                                             path_to_use=path_to_use,
-                                                                                             convert_to_gray=convert_to_grey)
+            #    is here because it need the parameter paths_to_use
+            #shape_of_kernel, stride_of_convolution, number_of_kernels, network = get_network(data_set_to_use=data_set_to_use,
+            #                                                                                path_to_store_model=path_to_use['store_model'],
+            #                                                                             convert_to_gray=convert_to_grey)
 
             if NN_train:
                 first.train_model(network = network ,
@@ -356,9 +364,6 @@ if __name__ == '__main__':
             print('\n\n\n\t\t\t', mode[i])
             # writes (intermediate) results to files, which are used for training and evaluation DCDL
             second.acc_data_generation(network=network, path_to_use=path_to_use)
-            # Update possibility (was not changed to be consistent with existing experiment results):
-            # delete the following line
-            # third.visualize_kernel(one_against_all, 'data/kernel_conv_1.npy')
 
             # If SLS Training is True DCDL formula for first convolution  is learned.
             # If its False the method make the necessarily preprocessing to
@@ -415,7 +420,7 @@ if __name__ == '__main__':
                 found_formula_SLS_BB, result_SLS_BB_train = sls.SLS_black_box_train(path_to_use,
                                                                           number_of_disjuntion_term_in_SLS_BB=number_of_disjuntion_term_in_SLS_BB,
                                                                           maximum_steps_in_SLS_BB=maximum_steps_in_SLS_BB,
-                                                                          one_against_all=one_against_all          )
+                                                                          one_against_all=one_against_all)
                 # evaluate found formula always on test data
                 result_SLS_BB_test = sls.black_box_predicition(found_formula=found_formula_SLS_BB,
                                                             path_to_use=path_to_use)
