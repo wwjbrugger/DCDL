@@ -82,6 +82,8 @@ def binarize_BetterSTE(x, name="egal"):
 
 
 def rule_dense_eff(X, k, dim, nr, activation=binarize_STE):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in experiment
     with tf.variable_scope("dcdl" + str(nr), reuse=False):
         # Get trainable weights
         w = tf.get_variable("weights", dtype=tf.float32, initializer=tf.random_normal([dim, k], 0, 1),
@@ -100,6 +102,8 @@ def rule_conv_block(X, nr, pretrain, skip=False, n_filter=16, s_filter=5, stride
                     bn_before=False, bn_after=False,
                     ind_scaling=False, pool_before=False,
                     pool_after=False, avg_pool=False):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in experiment
     with tf.variable_scope("dcdl_conv_" + str(nr), reuse=False):
 
         if skip:
@@ -171,6 +175,8 @@ def rule_conv_block(X, nr, pretrain, skip=False, n_filter=16, s_filter=5, stride
 
 
 def input_exp(X, nr, activation=binarize_STE, ind_scaling=False, name = "input"):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in experiment
     with tf.variable_scope(name + str(nr), reuse=False):
         b = tf.get_variable("bias", dtype=tf.float32, initializer=tf.random_normal(X.shape[1:], 0, 1),
                             trainable=True)

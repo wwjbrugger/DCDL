@@ -130,7 +130,7 @@ def visualize_multi_pic(pic_array, label_array, titel):
 
 
 def calculate_convolution(data_flat, kernel, true_label):
-    # calculate convolution by hand probably useful for
+    # calculate convolution by hand probably useful for debugging
     label = []
     kernel_flaten = np.reshape(kernel, (-1))
     for row in data_flat:

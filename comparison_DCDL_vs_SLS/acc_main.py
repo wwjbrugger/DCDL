@@ -138,6 +138,7 @@ def get_network(data_set_to_use, path_to_use, convert_to_gray):
     name_of_model = '{}_two_conv_2x2'.format(data_set_to_use)
 
     if data_set_to_use in 'numbers' or data_set_to_use in 'fashion':
+        # get the neural net for datasets with one colour channel
         network = model_two_convolution.network_two_convolution(path_to_use, name_of_model=name_of_model,
                                                                 shape_of_kernel=shape_of_kernel,
                                                                 nr_training_itaration=2000,
@@ -156,7 +157,7 @@ def get_network(data_set_to_use, path_to_use, convert_to_gray):
             input_channels = 3
             input_shape = (None, 32, 32, 3)
 
-        # get the neural net which will be trained later
+        # get the neural net for datasets with three colour channel
         network = model_two_convolution.network_two_convolution(path_to_use, name_of_model=name_of_model,
                                                                 shape_of_kernel=shape_of_kernel,
                                                                 nr_training_itaration=2000,
@@ -235,8 +236,8 @@ def fill_data_frame_with_sls(results, result_SLS_train, result_SLS_test, use_lab
 
 
 if __name__ == '__main__':
-    # start script with python acc_main to use parameter set in script
-    # start script with python acc_main [dataset] [label for one against all]
+    # start script with python acc_main.py to use parameter set in script
+    # start script with python acc_main.py [dataset] [label for one against all]
     #   e.g. python acc_main fashion 6
     # will run the experiment for the Fashion Mnist Dataset with label 6 against all.
     if len(sys.argv) > 1:
@@ -245,12 +246,14 @@ if __name__ == '__main__':
         print("Label-against-all", sys.argv [2])
         if (sys.argv[1] in 'numbers') or (sys.argv[1] in'fashion') or (sys.argv[1] in 'cifar'):
             data_set_to_use = sys.argv [1]
+            # Label you want to test against all
             one_against_all = int(sys.argv [2])
         else:
             raise ValueError('You choose a dataset which is not supported. \n Datasets which are allowed are numbers(Mnist), fashion(Fashion-Mnist) and cifar')
     else:
         # values if you start script without parameter
         data_set_to_use = 'cifar'  # 'numbers' or 'fashion'
+        # Label you want to test against all
         one_against_all = 4
 
 

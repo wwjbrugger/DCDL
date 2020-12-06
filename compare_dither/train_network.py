@@ -23,6 +23,12 @@ def balance_data_set(data_list, label_list, number_class_to_predict, seed = None
     balanced_dataset = []
     balanced_label = []
     # how many example we need from a label which is part of 'all' other classes
+    # update possibility (was not changed to be consistent with existing experiment results):
+    #   use following two lines
+    #   num_elements_one_class = int(label_list[:, one_class_against_all].sum())
+    #   num_elements_minority = int(num_elements_one_class/ (number_classes-1))
+    #   code bellow assumes all label are represented with the same number of  elements this has not to be true
+    #   (splitting dataset randomly in train and val data )
     num_elements_minority = int(label_list.shape[0] / number_classes/ (number_classes-1))
 
     for i in range(number_classes):
@@ -39,6 +45,7 @@ def balance_data_set(data_list, label_list, number_class_to_predict, seed = None
             sub_sample_indices = random.sample(indices, num_elements_minority)
             balanced_dataset.append(data_list[sub_sample_indices])
             balanced_label.append(label_list[sub_sample_indices])
+
     balanced_dataset = np.concatenate(balanced_dataset, axis=0)
     balanced_label = np.concatenate(balanced_label, axis=0)
     # permute data so not all label are at one position of the data array

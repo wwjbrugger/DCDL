@@ -107,32 +107,48 @@ _DIFFUSION_MAPS = {
     )
 }
 def error_diffusion_dithering(image, method='floyd-steinberg'):
+    # input are all pictures which should be dithered-
     dither_image = []
     for pic in tqdm(image):
+        # iterate through pictures and dither them
         dither_image.append(error_diffusion_dithering_single_picture(np.array(pic),method=method))
+        # update possibility (was not changed to be consistent with existing experiment results):
+        #   delete comment
     #dither_image =  np.array([error_diffusion_dithering_single_picture(np.array(pic), method) for pic in image])
     return np.array(dither_image)
 
 def error_diffusion_dithering_single_picture(image, method='floyd-steinberg'):
+    # dither a single picture
     dither_image = np.zeros(image.shape)
     for chanel in range(image.shape[-1]):
+        # iterate through channels
+        # update possibility (was not changed to be consistent with existing experiment results):
+        #   delete dither_chanel to dither_channel
         dither_chanel = error_diffusion_dithering_single_channel(np.array(image[:,:,chanel]), method)
         dither_image[:,:,chanel] = dither_chanel
     return dither_image
 
 def error_diffusion_dithering_single_channel(image_origin, method='floyd-steinberg'):
+    # dither a single channel
     image = image_origin.copy()
+    # get matrix for dithering
     diff_map = _DIFFUSION_MAPS.get(method.lower())
 
     for y in range(image.shape[0]):
+        # iterate through row
         for x in range(image.shape[1]):
-            old_pixel = image[y, x] # only this line 3,51
-            old_pixel = 0 if old_pixel< 0.0 else old_pixel # [old_pixel < 0.0] = 0.0 # + 3 sec
-            old_pixel = 1 if old_pixel > 1 else old_pixel# [old_pixel > 255.0] = 255.0 # + 3sec
-            new_pixel = np.around(old_pixel) # 5,3
+            #iterate through column
+            old_pixel = image[y, x]
+            # if pixel value out of range
+            old_pixel = 0 if old_pixel< 0.0 else old_pixel
+            old_pixel = 1 if old_pixel > 1 else old_pixel
+            # round pixel value
+            new_pixel = np.around(old_pixel)
+            # calculate difference between old and new pixel value
             quantization_error = old_pixel - new_pixel
-            image[y, x] = new_pixel #17 s
-            for dx, dy, diffusion_coefficient in diff_map: # 88,42  90,31
+            image[y, x] = new_pixel
+            for dx, dy, diffusion_coefficient in diff_map:
+                # distribute difference to pixel in neighborhood according to diff_map
                 xn, yn = x + dx, y + dy
                 if (0 <= xn < image.shape[1]) and (0 <= yn < image.shape[0]):
                     image[yn, xn] += quantization_error * diffusion_coefficient

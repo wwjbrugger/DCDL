@@ -36,7 +36,13 @@ def SLS_on_diter_data_against_true_label(path_to_use):
         # if data belongs to  label 'one' then a 0 is writen out
         # if data belongs to  label rest then a 1 is writen out
         # Update possibility (was not changed to be consistent with existing experiment results):
-        # change to position 0 for consistency with DCDL. Because we only have binary label both approaches are valid
+        # in comparison to prediction of the nn this is necessarily because the prediction of the neural net
+        # is an arg_max operation if the data belong to class one it will return 0
+        # if the data belong to class rest it will return 1
+        # with two classes this is identically  with input[:,[1]]
+        #  [[0,1],         [1]
+        #   [1,0]     ->   [0]
+        # see branch further development for a more intuitive implementation
         label_set = [label[1] for label in label_set]
     label_set = help.transform_to_boolean(label_set)
     label_set_flat = label_set
@@ -73,6 +79,13 @@ def predicition (found_formel, path_to_use):
         # if data belongs to  label rest then a 1 is writen out
         # Update possibility (was not changed to be consistent with existing experiment results):
         # change to position 0 for consistency with DCDL. Because we only have binary label both approaches are valid
+        #in comparison to prediction of the nn this is necessarily because the prediction of the neural net
+        # is an arg_max operation if the data belong to class one it will return 0
+        # if the data belong to class rest it will return 1
+        # see branch further development for a more intuitive implementation
+        # with two classes this is identically  with input[:,[1]]
+        #  [[0,1],         [1]
+        #   [1,0]     ->   [0]
         test_label = np.load(path_to_use['test_label'])
         test_label = [label[1] for label in test_label]
         test_label = help.transform_to_boolean(test_label)

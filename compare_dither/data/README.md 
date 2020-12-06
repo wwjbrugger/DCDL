@@ -1,1 +1,2 @@
-Scripts to download the data sets MNIST, FAHIONMNIST and CIFAR
+Scripts to download the data sets MNIST, FAHION_MNIST and CIFAR dataset
+Folder to save already dithered data.
