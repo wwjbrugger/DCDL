@@ -39,10 +39,10 @@ def load_tables(path_to_results):
     return tables, label
 
 
-def sim_DCDL_NN():
+def sim_DCDL_NN(suffix):
     # shows similarity between DCDL approach and the prediction of the neural net on training data for every label
     for i, dataset in enumerate(['numbers', 'fashion', 'cifar']):
-        path_to_results = join('data', dataset, 'results')
+        path_to_results = join('data', dataset, suffix)
         titel = 'DCDL similarity \n   label predicted from NN for train data \n'+ dataset
         table, label = load_tables(path_to_results)
         d = defaultdict(list)
@@ -95,7 +95,7 @@ def average_accurancy_on_test_data(path_to_results, titel, ax):
     help.graph_with_error_bar(x_values, y_values, y_stdr, titel, fix_y_axis=True, x_axis_title="",
                          y_axis_tile='accuracy [%]', ax_out=ax)
 
-def DCDL_minus_SLS_prediction():
+def DCDL_minus_SLS_prediction(suffix):
     # for similarity prediction of the neural net for training data are the label
     # shows difference between similarity of DCDL approach and similarity of SLS backbox prediction
 
@@ -106,7 +106,7 @@ def DCDL_minus_SLS_prediction():
     for i, dataset in enumerate(['numbers', 'fashion', 'cifar']):
         # iterate through datasets
         # get pandas frames with results for dataset
-        path_to_result = join('data', dataset, 'results')
+        path_to_result = join('data', dataset, suffix)
         table, label = load_tables(path_to_result)
         Concat_minus_SLS_prediction = []
         for pd_file in table:
@@ -129,11 +129,11 @@ def calculate_mean_std(array):
     standard_derivation = statistics.stdev(array)
     return mean, standard_derivation
 
-def students_t_test():
+def students_t_test(suffix):
     # uses t-test from scipy
     for i, dataset in enumerate(['numbers', 'fashion', 'cifar']):
         print ('\033[94m', '\n', dataset, ' students-t-test', '\033[0m')
-        path_to_result = join('data', dataset, 'results')
+        path_to_result = join('data', dataset, suffix)
         # get all result frames of one dataset
         tables, label = load_tables(path_to_result)
         # Update possibility (was not changed to be consistent with existing experiment results):
@@ -199,11 +199,11 @@ def corrected_dependent_ttest(data1, data2, n_training_folds, n_test_folds, alph
     # return everything
     return t_stat, df, cv, p
 
-def corrected_dependent_t_test( n_training_folds, n_test_folds, alpha):
+def corrected_dependent_t_test( n_training_folds, n_test_folds, alpha, suffix):
     # uses t-test from Nadeau and Bengio correction of dependent Student's t-test
     for i, dataset in enumerate(['numbers', 'fashion', 'cifar']):
         print ('\033[94m', '\n', dataset, ' students-t-test', '\033[0m')
-        path_to_result = join('data', dataset, 'results')
+        path_to_result = join('data', dataset, suffix)
         # get all result frames of one dataset
         tables, label = load_tables(path_to_result)
         # Update possibility (was not changed to be consistent with existing experiment results):
@@ -248,12 +248,12 @@ def corrected_dependent_t_test( n_training_folds, n_test_folds, alpha):
         with open('evaluation/students-test_corrected_{}.html'.format(dataset), "w") as f:
             f.write(html)
 
-def average_accurancy():
+def average_accurancy(suffix):
     # show comparison accuracy of DCDL, BB Prediction, BB train and Neural Network for all three dataset in one plot
     gs = gridspec.GridSpec(4, 4)
     position = [plt.subplot(gs[:2, :2]), plt.subplot(gs[:2, 2:]), plt.subplot(gs[2:4, 1:3])]
     for i, dataset in enumerate(['numbers', 'fashion', 'cifar']):
-        path_to_results = join('data', dataset, 'results')
+        path_to_results = join('data', dataset, suffix)
         average_accurancy_on_test_data(path_to_results, '', position[i])
 
     plt.tight_layout()
@@ -266,13 +266,16 @@ if __name__ == '__main__':
     n_training_folds = 1
     n_test_folds = 1
     alpha = 0.5
+    suffix = 'old_results'
+    corrected_dependent_t_test(n_training_folds=n_training_folds,
+                               n_test_folds = n_test_folds,
+                               alpha = alpha,
+                               suffix = suffix)
+    students_t_test(suffix= suffix)
+    sim_DCDL_NN(suffix = suffix)
 
-    corrected_dependent_t_test(n_training_folds=n_training_folds, n_test_folds = n_test_folds, alpha = alpha)
-    students_t_test()
-    sim_DCDL_NN()
+    DCDL_minus_SLS_prediction(suffix = suffix)
 
-    DCDL_minus_SLS_prediction()
-
-    average_accurancy()
+    average_accurancy(suffix = suffix)
 
 
