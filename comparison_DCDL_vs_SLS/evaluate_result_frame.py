@@ -27,7 +27,7 @@ def load_tables(path_to_results):
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 150)
     for file_name in files:
-        # "path has the form e.g. label_0__20200509-170342 so this method returns e.g. label_0"
+        # path has the form e.g. label_0__20200509-170342 so this method returns e.g. label_0
         label.append(file_name[:7])
         path = join(path_to_results, file_name)
         # load pandas-frames with results from experiment

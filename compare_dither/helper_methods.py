@@ -10,6 +10,9 @@ from skimage.measure import block_reduce
 
 
 def calculate_padding_parameter(shape_input_pic, filter_size, stride, ):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
+    # calculate how many zeros have to be pad on input to perform convolution
     in_height = shape_input_pic[1]
     in_width = shape_input_pic[2]
     out_height = np.ceil(float(in_height) / float(stride))
@@ -27,10 +30,10 @@ def calculate_padding_parameter(shape_input_pic, filter_size, stride, ):
     return ((0, 0), (int(pad_top), int(pad_bottom)), (int(pad_left), int(pad_right)), (0, 0))
 
 
-def data_in_kernel(arr, stepsize=2, width=4):  # kernel views
-    # Need padding for convolution
-    # npad = ((0, 0), (1, 1), (1, 1), (0, 0))
-    # npad = ((0, 0), (0, 0), (0, 0), (0, 0))
+def data_in_kernel(arr, stepsize=2, width=4):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
+    # calculates which data are under the kernel/filter of a convolution operation
     npad = calculate_padding_parameter(arr.shape, width, stepsize)
     training_set_padded = np.pad(arr, pad_width=npad, mode='constant', constant_values=0)
 
@@ -40,6 +43,8 @@ def data_in_kernel(arr, stepsize=2, width=4):  # kernel views
             range(0, dims[2] - width + 1, stepsize)]
     out_arr = np.stack(temp, axis=0)
 
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # delete comment
     # x = [arr[k, i:i+width, j:j+width, :].flatten()
     # [ 5x5 Subbild vom k-ten Bild] .flatten =>
     #   [[0, 1, 2, 3, 4],
@@ -55,8 +60,11 @@ def data_in_kernel(arr, stepsize=2, width=4):  # kernel views
     return out_arr
 
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+ # not used in compare_dither
 def permutate_and_flaten_2(training_set_kernel, label_set, channel_training, channel_label):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     """
     outdated
     @param training_set_kernel:
@@ -76,6 +84,8 @@ def permutate_and_flaten_2(training_set_kernel, label_set, channel_training, cha
 
 
 def permutate_and_flaten(data, label, channel_label):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     temp = []
     for pic in range(data.shape[0]):
         pic_temp = []
@@ -89,11 +99,15 @@ def permutate_and_flaten(data, label, channel_label):
 
 
 def transform_to_boolean(array):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # probably not used in compare_dither
     boolean_array = np.maximum(array, 0).astype(np.bool)  # 2,4 for pooled layer
     return boolean_array
 
 
 def visualize_singel_kernel(kernel, kernel_width, titel, set_vmin_vmax = True):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     f = plt.figure()
     ax = f.add_subplot(111)
     z = np.reshape(kernel, (kernel_width, kernel_width))
@@ -109,6 +123,8 @@ def visualize_singel_kernel(kernel, kernel_width, titel, set_vmin_vmax = True):
 
 
 def visualize_multi_kernel(pic_array, label_array, titel):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     """ show 10 first  pictures """
     for i in range(pic_array.shape[3]):
         ax = plt.subplot(4, 3, i + 1)
@@ -155,6 +171,8 @@ def visualize_pic(pic_array, label_array, class_names, titel, colormap, filename
 
 
 def calculate_convolution(data_flat, kernel, true_label):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     label = []
     kernel_flaten = np.reshape(kernel, (-1))
     for row in data_flat:
@@ -163,6 +181,8 @@ def calculate_convolution(data_flat, kernel, true_label):
 
 
 def visulize_input_data(pic):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     hight = int(np.sqrt(pic.size))
     pic = np.reshape(pic, (hight, hight))
 
@@ -211,6 +231,8 @@ def reduce_kernel(input, mode):
 
 
 def sls_convolution ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, stride_of_convolution, data_sign, label_sign, used_kernel, result= None, path_to_store = None, SLS_Training = True) :
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     kernel_width = used_kernel.shape[0]
     data_flat, label = prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolution)
     np.save(path_to_store + '_data_flat.npy', data_flat)
@@ -250,6 +272,8 @@ def sls_convolution ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, s
         np.save(path_to_store + '_in_array_code.npy', formel_in_array_code)
 """
 def prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolution):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     data_bool = transform_to_boolean(data_sign)
     label_bool = transform_to_boolean(label_sign)
 
@@ -262,6 +286,8 @@ def prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolut
 
 
 def sls_dense_net ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, data, label, path_to_store = None, SLS_Training = True) :
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     data = transform_to_boolean(data)
     data_flat = np.reshape(data, (data.shape[0], -1))
     np.save(path_to_store + '_data_flat.npy', data_flat)
@@ -283,6 +309,8 @@ def sls_dense_net ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, dat
 
 
 def prediction_SLS_fast (data_flat, label, found_formula, path_to_store_prediction = None):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     print('Shape of Input Data: ', data_flat.shape)
     if label.ndim == 1: # Output of NN in last layer [1,0,1,0 ...]
         label = np.array([-1 if l == 0 else 1 for l in label])
@@ -310,6 +338,8 @@ def prediction_SLS_fast (data_flat, label, found_formula, path_to_store_predicti
     return Accuracy
 
 def max_pooling (data):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    # not used in compare_dither
     data_after_max_pooling=block_reduce(data, block_size=(1, 2, 2, 1), func=np.max)
     return data_after_max_pooling
 

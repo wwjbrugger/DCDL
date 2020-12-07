@@ -12,6 +12,8 @@ class network_one_convolution():
                  learning_rate = 1E-3,
                  number_classes=10,
                  input_shape = (None,28,28,1),
+                 # Update possibility (was not changed to be consistent with existing experiment results):
+                 # nr_training_iteration
                  nr_training_itaration = 1500,
                  batch_size=2**14,
                  print_every = 100,
