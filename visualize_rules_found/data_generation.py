@@ -13,10 +13,10 @@ import model.visualize_rules_found.one_conv_block_model as model_one_convolution
 
 
 
-def data_generation (network):
+def data_generation (network, data_dic, data_type):
 
-    train_nn = np.load('data/data_set_train.npy')
-    label_train_nn = np.load('data/data_set_label_train_nn.npy')
+    input_dither = data_dic['dither_{}_data'.format(data_type)]
+    label_train_nn = data_dic['{}_label_one_hot'.format(data_type)]
 
     with tf.Session() as sess:
         # load trained net
@@ -28,38 +28,32 @@ def data_generation (network):
         # data as the get into the net
         input = sess.graph.get_operation_by_name("Placeholder").outputs[0]
 
-        # after reshaping
-        operation_data_for_SLS = sess.graph.get_operation_by_name('Reshape')
         # data at the end of the first convolution block used as label to train DCDL
-        operation_label_SLS = sess.graph.get_operation_by_name('dcdl_conv_1/conv2d/Sign')
+        operation_conv2d_Sign = sess.graph.get_operation_by_name('dcdl_conv_1/conv2d/Sign')
         # data after first convolution operation not needed in experiment
-        operation_result_conv = sess.graph.get_operation_by_name('dcdl_conv_1/conv2d/Conv2D')
+        operation_result_Conv2D = sess.graph.get_operation_by_name('dcdl_conv_1/conv2d/Conv2D')
         # kernel which is used in first convolution
         operation_kernel_conv_1_conv2d = sess.graph.get_operation_by_name('dcdl_conv_1/conv2d/kernel/read')
         # kernel which is used in dense layer
         operation_dense_kernel_read = sess.graph.get_operation_by_name('dense/kernel/read')
 
         # extract the (intermediate) results from the net
-        input_for_SLS = sess.run(operation_data_for_SLS.outputs[0],
-                                          feed_dict={input: train_nn})
+        output_conv2d_Sign = sess.run(operation_conv2d_Sign.outputs[0],
+                                          feed_dict={input: input_dither})
 
-        label_SLS = sess.run(operation_label_SLS.outputs[0],
-                                          feed_dict={input: train_nn})
-
-        result_conv = sess.run(operation_result_conv.outputs[0],
-                                         feed_dict={input: train_nn})
+        result_Conv2D = sess.run(operation_result_Conv2D.outputs[0],
+                                         feed_dict={input: input_dither})
 
         kernel_conv_1_conv2d = sess.run(operation_kernel_conv_1_conv2d.outputs[0],
-                                         feed_dict={input: train_nn})
+                                         feed_dict={input: input_dither})
         dense_kernel_read = sess.run(operation_dense_kernel_read.outputs[0],
-                                        feed_dict={input: train_nn})
+                                        feed_dict={input: input_dither})
 
 
 
         # save the (intermediate) results from the net
-        np.save('data/label_SLS.npy', label_SLS)
-        np.save('data/result_conv.npy', result_conv)
-        np.save('data/kernel.npy', kernel_conv_1_conv2d)
-
+        data_dic['output_nn_dcdl_conv_1_conv2d_Sign_{}'.format(data_type)] = output_conv2d_Sign
+        data_dic['output_nn_dcdl_conv_1_result_Conv2D_{}'.format(data_type)] =  result_Conv2D
+        data_dic['output_nn_kernel_conv_1_conv2d'] = kernel_conv_1_conv2d
         print('data generation is finished')
 

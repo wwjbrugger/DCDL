@@ -62,7 +62,7 @@ def rule_extraction_with_sls(data, label, number_of_disjunction_term, maximum_st
 """
 Input in SLS are values in True/False Form 
 """
-def rule_extraction_with_sls_without_validation(data, label, number_of_disjunction_term, maximum_steps_in_SLS, kernel = False ):
+def rule_extraction_with_sls_without_validation(data, label, number_of_disjunction_term, maximum_steps_in_SLS, kernel  ):
     # run SLS with maximal number of training samples
     first_split, second_split = int(data.shape[0]), int(data.shape[0])
     # number of input variables is rounded up to a multiple of eight

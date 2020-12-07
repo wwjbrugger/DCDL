@@ -311,8 +311,8 @@ if __name__ == '__main__':
                    'Input data in net: test  \t Label used for DCDL: True label of data']
 
         # Set k for DCDL approximation
-        number_of_disjuntion_term_in_SLS_DCDL = 40
-        number_of_disjuntion_term_in_SLS_BB = 40
+        number_of_disjunction_term_in_SLS_DCDL = 40
+        number_of_disjunction_term_in_SLS_BB = 40
         # How many steps in SLS are made
         maximum_steps_in_SLS_DCDL = 2000
         maximum_steps_in_SLS_BB = 2500
@@ -371,7 +371,7 @@ if __name__ == '__main__':
             # If SLS Training is True DCDL formula for first convolution  is learned.
             # If its False the method make the necessarily preprocessing to
             # use the logic formulas and skip the training part
-            third.DCDL_Conv_1(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+            third.DCDL_Conv_1(number_of_disjunction_term_in_SLS_DCDL=number_of_disjunction_term_in_SLS_DCDL,
                              maximum_steps_in_SLS_DCDL = maximum_steps_in_SLS_DCDL,
                              stride_of_convolution=stride_of_convolution,
                              DCDL_train=DCDL_train,
@@ -384,7 +384,7 @@ if __name__ == '__main__':
             # If SLS Training is True DCDL formula for second convolution is learned.
             # If its False the method make the necessarily preprocessing to
             # use the logic formulas and skip the training part
-            third.SLS_DCDL_2(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+            third.SLS_DCDL_2(number_of_disjunction_term_in_SLS_DCDL=number_of_disjunction_term_in_SLS_DCDL,
                              maximum_steps_in_SLS_DCDL=maximum_steps_in_SLS_DCDL,
                              stride_of_convolution=stride_of_convolution,
                              DCDL_train=DCDL_train,
@@ -398,7 +398,7 @@ if __name__ == '__main__':
             # If SLS Training is True DCDL formula for dense layer is learned.
             # If its False the method make the necessarily preprocessing to
             # use the logic formulas and skip the training part
-            third.DCDL_dense(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+            third.DCDL_dense(number_of_disjunction_term_in_SLS_DCDL=number_of_disjunction_term_in_SLS_DCDL,
                             maximum_steps_in_SLS_DCDL = maximum_steps_in_SLS_DCDL,
                             DCDL_train=DCDL_train,
                             path_to_use=path_to_use)
@@ -421,7 +421,7 @@ if __name__ == '__main__':
                 # train SLS blackbox approach
                 # found formula is the formula which is found by the SLS algorithm
                 found_formula_SLS_BB, result_SLS_BB_train = sls.SLS_black_box_train(path_to_use,
-                                                                          number_of_disjuntion_term_in_SLS_BB=number_of_disjuntion_term_in_SLS_BB,
+                                                                          number_of_disjunction_term_in_SLS_BB=number_of_disjunction_term_in_SLS_BB,
                                                                           maximum_steps_in_SLS_BB=maximum_steps_in_SLS_BB,
                                                                           one_against_all=one_against_all)
                 # evaluate found formula always on test data
