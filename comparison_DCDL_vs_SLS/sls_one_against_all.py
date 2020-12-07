@@ -8,10 +8,10 @@ import pickle
 
 import comparison_DCDL_vs_SLS.acc_data_generation as secound
 
-def SLS_black_box_train(path_to_use, number_of_disjuntion_term_in_SLS_BB, maximum_steps_in_SLS_BB, one_against_all):
+def SLS_black_box_train(path_to_use, number_of_disjunction_term_in_SLS_BB, maximum_steps_in_SLS_BB, one_against_all):
 
     print('\n\n \t\t sls run ')
-    print('number_of_disjuntion_term_in_SLS_BB: ', number_of_disjuntion_term_in_SLS_BB)
+    print('number_of_disjunction_term_in_SLS_BB: ', number_of_disjunction_term_in_SLS_BB)
 
     # train set is loaded
     print('Input to train SLS black box is ',path_to_use['input_graph'])
@@ -42,7 +42,7 @@ def SLS_black_box_train(path_to_use, number_of_disjuntion_term_in_SLS_BB, maximu
     label_set_flat = label_set
     # get formula for SLS blackbox approach
     found_formula = \
-        SLS.rule_extraction_with_sls_without_validation(training_set_flat, label_set_flat, number_of_disjuntion_term_in_SLS_BB,
+        SLS.rule_extraction_with_sls_without_validation(training_set_flat, label_set_flat, number_of_disjunction_term_in_SLS_BB,
                                                     maximum_steps_in_SLS_BB)
     # calculate accuracy on train set
     accuracy = (training_set.shape[0] - found_formula.total_error) / training_set.shape[0]
@@ -56,7 +56,7 @@ def SLS_black_box_train(path_to_use, number_of_disjuntion_term_in_SLS_BB, maximu
         helper_methods.visualize_singel_kernel(kernel = np.reshape(reduced_kernel, (-1)),
                              kernel_width = 28,
                              title ='norm of all SLS Formula for {} against all \n  k= {}'.format(one_against_all,
-                                                                                                          number_of_disjuntion_term_in_SLS_BB))
+                                                                                                          number_of_disjunction_term_in_SLS_BB))
     return found_formula, accuracy
 
 def black_box_predicition (found_formula, path_to_use):

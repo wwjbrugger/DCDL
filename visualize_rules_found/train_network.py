@@ -1,44 +1,33 @@
 import numpy as np
-
-import numpy as np
-import comparison_DCDL_vs_SLS.data.fashion.mnist_fashion as fashion
-import comparison_DCDL_vs_SLS.data.numbers.mnist_dataset as numbers
-import comparison_DCDL_vs_SLS.data.cifar.cifar_dataset as cifar
-import comparison_DCDL_vs_SLS.dithering as dith
-import helper_methods as helper_methods
+import random as random
 import matplotlib.pyplot as plt
 
-import comparison_DCDL_vs_SLS.acc_train as acc_train
-import model.visualize_rules_found.one_conv_block_model as model_one_convolution
-import comparison_DCDL_vs_SLS.data.numbers.mnist_dataset as numbers
-import comparison_DCDL_vs_SLS.dithering as dith
+import get_data_scripts_and_dither.mnist_fashion as fashion
+import get_data_scripts_and_dither.cifar_dataset as cifar
+import get_data_scripts_and_dither.mnist_numbers as numbers
+
+import get_data_scripts_and_dither.dithering as dith
 import visualize_rules_found.helper_methods as help_vis
-import random as random
 
 
-def balance_data_set(data_list, label_list, one_class_against_all, seed = None):
+
+def balance_data_set(data_list, label_list, one_class_against_all):
     """
     Balances data for one against all tests.
     Half of the returned data is from label 'one' class
     The other half consists of equal parts of 'all' other classes.
-    @param data_list:
-    @param label_list:
-    @param number_class_to_predict:
-    @param seed:
-    @return:
     """
-    np.random.seed(seed)
     number_classes = label_list.shape[1]
     balanced_dataset = []
     balanced_label = []
     # how many example we have in the set of the 'one' class  from a label which is part of 'all' other classes
     num_elements_one_class = int(label_list[:, one_class_against_all].sum())
-    num_elements_minority = int(num_elements_one_class/ (number_classes-1))
+    num_elements_minority = int(num_elements_one_class / (number_classes - 1))
 
     for i in range(number_classes):
         # get all indices of data which belong to label i
         indices = [j for j, one_hot_label in enumerate(label_list) if
-                          one_hot_label[i] == 1]
+                   one_hot_label[i] == 1]
 
         if i == one_class_against_all:
             # add all examples which belong to label 'one'
@@ -57,7 +46,6 @@ def balance_data_set(data_list, label_list, one_class_against_all, seed = None):
     x, y = balanced_dataset[idx], balanced_label[idx]
 
     return x, y
-
 
 def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_all,
                     number_class_to_predict, data_set_to_use, convert_to_grey, values_max_1):
@@ -113,9 +101,9 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
 
     # convert colour picture in greyscale pictures. Is not used in experiment
     if convert_to_grey:
-        train_nn = helper_methods.convert_to_grey(pic_array=train_nn)
-        val = helper_methods.convert_to_grey(pic_array=val)
-        test = helper_methods.convert_to_grey(pic_array=test)
+        train_nn = help_vis.convert_to_grey(pic_array=train_nn)
+        val = help_vis.convert_to_grey(pic_array=val)
+        test = help_vis.convert_to_grey(pic_array=test)
         dith.visualize_pic(pic_array=train_nn,
                            label_array=label_train_nn,
                            class_names=class_names,
@@ -138,13 +126,13 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
                            colormap=plt.cm.Greys)
 
     # convert for one-against-all testing one-hot label with 10 classes in one-hot label with two classes ([one, rest])
-    label_train_nn = helper_methods.one_class_against_all(array_label=label_train_nn,
+    label_train_nn = help_vis.one_class_against_all(array_label=label_train_nn,
                                                           one_class=one_against_all,
                                                           number_classes_output=number_class_to_predict)
-    label_val = helper_methods.one_class_against_all(array_label=label_val,
+    label_val = help_vis.one_class_against_all(array_label=label_val,
                                                      one_class=one_against_all,
                                                      number_classes_output=number_class_to_predict)
-    label_test = helper_methods.one_class_against_all(array_label=label_test,
+    label_test = help_vis.one_class_against_all(array_label=label_test,
                                                       one_class=one_against_all,
                                                       number_classes_output=number_class_to_predict)
 
@@ -159,16 +147,8 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
 
 
 
-def train_model(network, dithering_used, one_against_all, number_classes_to_predict):
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    # move hardcoded parameters to start.py
-    #number_class_to_predict = 10
-    data_set_to_use = 'numbers'
-    size_train_nn = 55000
-    size_valid_nn = 5000
-    percent_of_major_label_to_keep = 0.111
-    convert_to_grey = False
-    values_max_1 = True
+def train_model(network, dithering_used, one_against_all, data_set_to_use, size_train_nn, size_valid_nn, convert_to_grey, values_max_1, data_dic):
+
 
     train_nn, label_train_nn, val, label_val,  test, label_test = prepare_dataset(size_train_nn = size_train_nn,
                                                                                  size_valid_nn=size_valid_nn,
@@ -181,19 +161,6 @@ def train_model(network, dithering_used, one_against_all, number_classes_to_pred
 
     print("Training", flush=True)
 
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    # delete comments
-    #train_nn, label_train_nn, val, label_val,  test, label_test = comparison_DCDL_vs_SLS.train_network.prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_all,  data_set_to_use='mnist' )
-    """train_nn, label_train_nn, val, label_val,  test, label_test = acc_train.prepare_dataset(size_train_nn =size_train_nn, size_valid_nn=size_valid_nn,
-                    dithering_used= dithering_used , one_against_all = one_against_all,
-                    percent_of_major_label_to_keep=percent_of_major_label_to_keep, number_class_to_predict=number_classes_to_predict, data_set_to_use=dataset_to_use,
-                    convert_to_grey=convert_to_grey)
-    """
-
-    #prepare_dataset()
-    #class_names = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
-    #dith.visualize_pic(train_nn, label_train_nn, class_names, "Input pic to train neuronal net with corresponding label", plt.cm.Greys)
-
     # train network
     print("Start Training")
     network.training(train_nn, label_train_nn, test, label_test)
@@ -205,22 +172,11 @@ def train_model(network, dithering_used, one_against_all, number_classes_to_pred
     network.evaluate(val, label_val)
 
     # save preprocessed datasets (needed for later evaluation)
-    print ('\n\n used data sets are saved' )
-    np.save('data/data_set_train.npy', train_nn)
-    np.save('data/data_set_label_train_nn.npy', label_train_nn)
-    np.save('data/data_set_val.npy', val)
-    np.save('data/data_set_label_val.npy', label_val)
-    np.save('data/data_set_test.npy', test)
-    np.save('data/data_set_label_test.npy', label_test)
-
-    print('end')
-
-    # Update possibility (was not changed to be consistent with existing experiment results):
-    # delete main method
-if __name__ == '__main__':
-    dithering_used= True
-    one_against_all = 4
-    number_classes_to_predict = 2
-    network = model_one_convolution.network_one_convolution(shape_of_kernel= (28,28), nr_training_itaration= 1000, stride=28, check_every= 200, number_of_kernel=1,
-                                                            number_classes=number_classes_to_predict)
-    train_model(network, dithering_used, one_against_all, number_classes_to_predict = number_classes_to_predict)
+    print ('\n\n used data sets are set to data_dic' )
+    data_dic['dither_train_data']= train_nn
+    data_dic['train_label_one_hot'] = label_train_nn
+    data_dic['dither_val_data'] = val
+    data_dic['val_label_one_hot'] = label_val
+    data_dic['dither_test_data'] = test
+    data_dic['data/data_set_label_test.npy'] = label_test
+    return  data_dic

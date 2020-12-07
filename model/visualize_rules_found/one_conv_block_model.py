@@ -1,50 +1,44 @@
 import numpy as np
 import tensorflow as tf
 import os
-import model.Gradient_helpLayers_convBlock as helper
 import sys
 
-#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
-#tf.compat.v1compat.v1.logging.set_verbosity(tf.compat.v1compat.v1.logging.ERROR)
 class network_one_convolution():
 
-    def __init__(self, name_of_model = "net_with_maximal_kernel",
-                 learning_rate = 1E-3,
-                 number_classes=10,
-                 input_shape = (None,28,28,1),
-                 # Update possibility (was not changed to be consistent with existing experiment results):
-                 # nr_training_iteration
-                 nr_training_itaration = 1500,
-                 batch_size=2**14,
-                 print_every = 100,
-                 check_every = 100,
-                 number_of_kernel = 10,
-                 shape_of_kernel = (3,3),
-                 stride = 2,
-                 input_channels = 1,
-                 input_binarized = True,
+    def __init__(self,
+                 name_of_model,
+                 learning_rate,
+                 number_classes,
+                 input_shape,
+                 nr_training_iteration,
+                 batch_size,
+                 print_every,
+                 check_every,
+                 number_of_kernel,
+                 shape_of_kernel,
+                 stride,
+                 input_channels ,
+                 input_binarized,
                  # activation is a sign function sign(x) = -1 if x < 0; 0 if x == 0; 1 if x > 0.
-                 activation = helper.binarize_STE,
-                 use_bias_in_convolution = False):
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        # no hard script or default values
+                 activation,
+                 use_bias_in_convolution,
+                 save_path_model,
+                 save_path_logs):
         # Clears the default graph stack and resets the global default graph.
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        #         activate comment
-        #tf.compat.v1.reset_default_graph()
+
+        tf.compat.v1.reset_default_graph()
 
         # save method parameter as class parameter
         self.learning_rate = learning_rate
         self.classes = number_classes
         self.input_shape = input_shape
-        self.nr_training_itaration = nr_training_itaration
+        self.nr_training_iteration = nr_training_iteration
         self.batch_size = batch_size
         self.print_every = print_every
         self.check_every = check_every
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        # change to following
-        # self.folder_to_save = path_to_use['store_model'] + str(name_of_model)
-        self.folder_to_save = os.path.dirname(sys.argv[0]) + "/stored_models/" + str(name_of_model)
+
+        self.folder_to_save = save_path_model
+        self.save_path_logs = save_path_logs
         self.name_of_model = name_of_model
         self.number_of_kernel = number_of_kernel
         self.shape_of_kernel = shape_of_kernel
@@ -72,20 +66,16 @@ class network_one_convolution():
                 self.stride, self.stride], padding="same", activation=self.activation, use_bias=False)
 
         X = tf.compat.v1.layers.flatten(X)
-        #  Update possibility (was not changed to be consistent with existing experiment results):
-        #         add properties
-        #         Computes softmax activations
-        #         inputs = X,
-        #         units = self.classes
-        #         activation = tf.compat.v1.nn.softmax
 
         # fix mapping from convolution result of shape [x] to one hot label [a, b]
-        # result of dense layer will be [x, 0]
+        # result of dense layer will be [x.x, y.y]
         init = tf.constant_initializer([1,0])
-        self.prediction = tf.compat.v1.layers.dense(X, self.classes, tf.compat.v1.nn.softmax, kernel_initializer=init, trainable=False,  use_bias=False )
-        #  Update possibility (was not changed to be consistent with existing experiment results):
-        # delete following line
-        #tf.compat.v1.layers.dense(X, self.classes, tf.compat.v1.nn.softmax, kernel_constraint=tf.compat.v1.keras.constraints.NonNeg(), use_bias=False )
+        self.prediction = tf.compat.v1.layers.dense(X,
+                                                    units=self.classes,
+                                                    activation= tf.compat.v1.nn.softmax,
+                                                    kernel_initializer=init,
+                                                    trainable=False,
+                                                    use_bias=False )
 
         # calculate loss
         self.loss = tf.compat.v1.reduce_mean(-tf.compat.v1.reduce_sum(self.True_Label *
@@ -119,15 +109,15 @@ class network_one_convolution():
             if loging:
                 # logs can be visualized in tensorboard.
                 # useful for see structure of the graph
-                # Update possibility (was not changed to be consistent with existing experiment results):
-                path_to_store_logs = os.path.dirname(sys.argv[0]) + "/logs"
+                path_to_store_logs = self.save_path_logs# os.path.dirname(sys.argv[0]) + "/logs"
+                print(self.save_path_logs)
                 writer = tf.compat.v1.summary.FileWriter(path_to_store_logs, session=sess,
                                                graph=sess.graph)  # + self.name_of_model, sess.graph)
 
             sess.run(self.init)
             best_acc_so_far = 0
 
-            for iteration in range(self.nr_training_itaration):
+            for iteration in range(self.nr_training_iteration):
                 # train net
 
                 indices = np.random.choice(len(train), self.batch_size)

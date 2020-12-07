@@ -11,7 +11,7 @@ import pickle
 
 
 
-def DCDL_Conv_1 (number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, stride_of_convolution, DCDL_train, path_to_use, unique_index):
+def DCDL_Conv_1 (number_of_disjunction_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, stride_of_convolution, DCDL_train, path_to_use, unique_index):
     # load the data for training/using the DCDL rules for approximating the first convolution block.  
     print('SLS Extraction for Convolution 1')
 
@@ -22,7 +22,7 @@ def DCDL_Conv_1 (number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCD
 
     path_to_store= path_to_use['logic_rules_conv_1']
     
-    DCDL_helper.sls_convolution(number_of_disjuntion_term_in_SLS_DCDL = number_of_disjuntion_term_in_SLS_DCDL,
+    DCDL_helper.sls_convolution(number_of_disjunction_term_in_SLS_DCDL = number_of_disjunction_term_in_SLS_DCDL,
                          maximum_steps_in_SLS_DCDL = maximum_steps_in_SLS_DCDL,
                          stride_of_convolution = stride_of_convolution,
                          data_sign = data,
@@ -51,7 +51,7 @@ def prediction_DCDL_1(path_to_use):
 
 
 
-def SLS_DCDL_2 (number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, stride_of_convolution, DCDL_train, input_from_SLS, path_to_use, unique_index):
+def SLS_DCDL_2 (number_of_disjunction_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, stride_of_convolution, DCDL_train, input_from_SLS, path_to_use, unique_index):
     # load the data for training/using the DCDL rules for approximating the second convolution block. 
     print('\n\n SLS Extraction for Convolution 2')
     print('Input Convolution 2', path_to_use['input_conv_2'])
@@ -68,7 +68,7 @@ def SLS_DCDL_2 (number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL
 
     path_to_store= path_to_use['logic_rules_conv_2']
     # prepare data for learning/using DCDL rules to approximate convolutional layer
-    DCDL_helper.sls_convolution(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+    DCDL_helper.sls_convolution(number_of_disjunction_term_in_SLS_DCDL=number_of_disjunction_term_in_SLS_DCDL,
                          maximum_steps_in_SLS_DCDL=maximum_steps_in_SLS_DCDL,
                          stride_of_convolution=stride_of_convolution,
                          data_sign=data,
@@ -97,7 +97,7 @@ def prediction_DCDL_2(path_to_use):
                              found_formula=found_formula,
                              path_to_store_prediction=path_to_store_prediction)
 
-def DCDL_dense(number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, DCDL_train, path_to_use ):
+def DCDL_dense(number_of_disjunction_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, DCDL_train, path_to_use ):
     # load the data for training/using the DCDL rules for approximating the dense layer 
     print('\n SLS Extraction for dense layer')
     print('data to use ', path_to_use['input_dense'] )
@@ -110,7 +110,7 @@ def DCDL_dense(number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL,
    #     label = label.reshape((-1, 1))
 
     path_to_store= path_to_use['logic_rules_dense']
-    DCDL_helper.sls_dense(number_of_disjuntion_term_in_SLS_DCDL=number_of_disjuntion_term_in_SLS_DCDL,
+    DCDL_helper.sls_dense(number_of_disjunction_term_in_SLS_DCDL=number_of_disjunction_term_in_SLS_DCDL,
                    maximum_steps_in_SLS_DCDL=maximum_steps_in_SLS_DCDL,
                    data=data,
                    label=label,

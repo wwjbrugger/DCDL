@@ -6,7 +6,7 @@ import pickle
 import helper_methods as helper_methods
 
 
-def sls_convolution (number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, stride_of_convolution,
+def sls_convolution (number_of_disjunction_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, stride_of_convolution,
                      data_sign, label_sign, used_kernel, result, path_to_store , DCDL_train, unique_index) :
     # prepare data for learning/using DCDL rules to approximate convolutional layer
     kernel_width = used_kernel.shape[0]
@@ -36,7 +36,7 @@ def sls_convolution (number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS
             found_formula = \
                 SLS.rule_extraction_with_sls_without_validation(data=data_flat,
                                                                 label=label_flat,
-                                                                number_of_disjunction_term=number_of_disjuntion_term_in_SLS_DCDL,
+                                                                number_of_disjunction_term=number_of_disjunction_term_in_SLS_DCDL,
                                                                 maximum_steps_in_SLS=maximum_steps_in_SLS_DCDL)
             found_formula.shape_input_data = data_sign.shape
             found_formula.shape_output_data = label.shape
@@ -57,7 +57,7 @@ def sls_convolution (number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS
     return logic_formulas
 
 
-def sls_dense(number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, data, label, path_to_store,
+def sls_dense(number_of_disjunction_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, data, label, path_to_store,
               SLS_Training):
     # control code for approximating the dense layer in the NN with DCDL
     data = helper_methods.transform_to_boolean(data)
@@ -71,7 +71,7 @@ def sls_dense(number_of_disjuntion_term_in_SLS_DCDL, maximum_steps_in_SLS_DCDL, 
         found_formula = \
             SLS.rule_extraction_with_sls_without_validation(data=data_flat,
                                                             label=label,
-                                                            number_of_disjunction_term=number_of_disjuntion_term_in_SLS_DCDL,
+                                                            number_of_disjunction_term=number_of_disjunction_term_in_SLS_DCDL,
                                                             maximum_steps_in_SLS=maximum_steps_in_SLS_DCDL)
 
         found_formula.shape_input_data = data.shape
