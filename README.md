@@ -17,3 +17,6 @@ C++ implementation of the SLS algorithm
 #####  model module 
 Structure of the neural networks for the experiments 
 Structure for storing the extracted logical rules 
+
+#### install necessary packages 
+`sudo pip install -r requirements.txt`

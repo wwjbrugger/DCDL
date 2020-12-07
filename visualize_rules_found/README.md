@@ -4,7 +4,8 @@ Entry point is the script start.py where the hyperparameters can be changed.
 It can be changed: 
 
 `one_against_all_array` Which label should be tested against all others. 
-
+#### Update possibility (was not changed to be consistent with existing experiment results):
+#### don't use repetitions_of_sls
 `repetitions_of_sls` How often the extraction of the logical rules should be calculated to ensure a statistically safe statement
 
 `Number_of_disjuntion_term_in_SLS` How many disjunctions may be used in the SLS. A small number provides general/discriminative rules and 

@@ -10,6 +10,7 @@ from skimage.measure import block_reduce
 
 
 def calculate_padding_parameter(shape_input_pic, filter_size, stride, ):
+    # calculate how many zeros have to be pad on input to perform convolution
     in_height = shape_input_pic[1]
     in_width = shape_input_pic[2]
     out_height = np.ceil(float(in_height) / float(stride))
@@ -28,9 +29,7 @@ def calculate_padding_parameter(shape_input_pic, filter_size, stride, ):
 
 
 def data_in_kernel(arr, stepsize=2, width=4):  # kernel views
-    # Need padding for convolution
-    # npad = ((0, 0), (1, 1), (1, 1), (0, 0))
-    # npad = ((0, 0), (0, 0), (0, 0), (0, 0))
+    # calculates which data are under the kernel/filter of a convolution operation
     npad = calculate_padding_parameter(arr.shape, width, stepsize)
     training_set_padded = np.pad(arr, pad_width=npad, mode='constant', constant_values=0)
 
@@ -40,23 +39,13 @@ def data_in_kernel(arr, stepsize=2, width=4):  # kernel views
             range(0, dims[2] - width + 1, stepsize)]
     out_arr = np.stack(temp, axis=0)
 
-    # x = [arr[k, i:i+width, j:j+width, :].flatten()
-    # [ 5x5 Subbild vom k-ten Bild] .flatten =>
-    #   [[0, 1, 2, 3, 4],
-    #    [5, 6, 7, 8, 9],
-    #    [0, 1, 2, 3, 4],   =>  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...]
-    #    [5, 6, 7, 8, 9],
-    #    [0, 1, 2, 3, 4]]
-    # for k in range(0, dims[0])  for i in range(0, dims[1] - width + 1, stepsize) for j in range(0, dims[2] - width + 1, stepsize) ], axis=0
-    #  für jedes Bild bewege Kernel über das Bild
-    # 196 Position ein 4X4 Kernel auf ein 30x30 mit Stride 2 zu plazieren. Pro Position gibt es 256 Channels gibt vor dem stack befehl ein Shape (196,(4,4,256))
-    # nach dem Stack  (196,4,4,256)
-
     return out_arr
 
 
 
 def permutate_and_flaten_2(training_set_kernel, label_set, channel_training, channel_label):
+    # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
     """
     outdated
     @param training_set_kernel:
@@ -76,6 +65,7 @@ def permutate_and_flaten_2(training_set_kernel, label_set, channel_training, cha
 
 
 def permutate_and_flaten(data, label, channel_label):
+    # this method has logic to iterate through input data and chanel in the method.
     temp = []
     for pic in range(data.shape[0]):
         pic_temp = []
@@ -89,10 +79,15 @@ def permutate_and_flaten(data, label, channel_label):
 
 
 def transform_to_boolean(array):
-    boolean_array = np.maximum(array, 0).astype(np.bool)  # 2,4 for pooled layer
+    # cast data from -1 to 0.
+    # 0 is interpreted as False
+    # 1 as True
+    boolean_array = np.maximum(array, 0).astype(np.bool)
     return boolean_array
 
 
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def visualize_singel_kernel(kernel, kernel_width, titel, set_vmin_vmax = True):
     f = plt.figure()
     ax = f.add_subplot(111)
@@ -107,7 +102,8 @@ def visualize_singel_kernel(kernel, kernel_width, titel, set_vmin_vmax = True):
     plt.gca().invert_yaxis()
     plt.show()
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def visualize_multi_kernel(pic_array, label_array, titel):
     """ show 10 first  pictures """
     for i in range(pic_array.shape[3]):
@@ -128,7 +124,8 @@ def visualize_multi_kernel(pic_array, label_array, titel):
     plt.tight_layout()
     plt.show()
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def visualize_pic(pic_array, label_array, class_names, titel, colormap, filename = False):
     """ show first 20  pictures in array"""
     for i in range(20):
@@ -153,7 +150,8 @@ def visualize_pic(pic_array, label_array, class_names, titel, colormap, filename
         plt.show()
 
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def calculate_convolution(data_flat, kernel, true_label):
     label = []
     kernel_flaten = np.reshape(kernel, (-1))
@@ -161,7 +159,8 @@ def calculate_convolution(data_flat, kernel, true_label):
         label.append(np.dot(row, kernel_flaten))
     return label
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def visulize_input_data(pic):
     hight = int(np.sqrt(pic.size))
     pic = np.reshape(pic, (hight, hight))
@@ -224,7 +223,8 @@ def reduce_kernel(input, mode):
     else:
         raise ValueError("{} ist not a valid mode.".format(mode))
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def sls_convolution ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, stride_of_convolution, data_sign, label_sign, used_kernel, result= None, path_to_store = None, SLS_Training = True) :
     kernel_width = used_kernel.shape[0]
     data_flat, label = prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolution)
@@ -264,6 +264,10 @@ def sls_convolution ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, s
             formel_in_array_code.append(np.reshape(formel.formula_in_arrays_code, (-1, kernel_width, kernel_width)))
         np.save(path_to_store + '_in_array_code.npy', formel_in_array_code)
 """
+
+
+# Update possibility (was not changed to be consistent with existing experiment results):
+#     delete method
 def prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolution):
     data_bool = transform_to_boolean(data_sign)
     label_bool = transform_to_boolean(label_sign)
@@ -275,7 +279,8 @@ def prepare_data_for_sls(data_sign, label_sign, kernel_width, stride_of_convolut
 
     return data_bool_flat, label_bool
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def sls_dense_net ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, data, label, path_to_store = None, SLS_Training = True) :
     data = transform_to_boolean(data)
     data_flat = np.reshape(data, (data.shape[0], -1))
@@ -296,7 +301,8 @@ def sls_dense_net ( number_of_disjunction_term_in_SLS, Maximum_Steps_in_SKS, dat
         if path_to_store is not None:
             pickle.dump(found_formula, open(path_to_store, "wb"))
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def prediction_SLS_fast (data_flat, label, found_formula, path_to_store_prediction = None):
     print('Shape of Input Data: ', data_flat.shape)
     if label.ndim == 1: # Output of NN in last layer [1,0,1,0 ...]
@@ -324,6 +330,8 @@ def prediction_SLS_fast (data_flat, label, found_formula, path_to_store_predicti
         np.save(path_to_store_prediction, prediction)
     return Accuracy
 
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def max_pooling (data):
     data_after_max_pooling=block_reduce(data, block_size=(1, 2, 2, 1), func=np.max)
     return data_after_max_pooling
@@ -336,7 +344,8 @@ def convert_to_grey(pic_array):
     return pictures_grey
 
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def graph_with_error_bar(x_values, y_values, y_stdr, title = "",x_axis_title="", y_axis_tile='', fix_y_axis= False, ax_out = False, save_path = False, plot_line = False  ):
     if not ax_out:
         fig, ax = plt.subplots()
@@ -364,7 +373,8 @@ def graph_with_error_bar(x_values, y_values, y_stdr, title = "",x_axis_title="",
     if not ax_out:
         plt.show()
 
-
+ # Update possibility (was not changed to be consistent with existing experiment results):
+    #     delete method
 def mark_small_values(val):
     """
     Takes a scalar and returns a string with

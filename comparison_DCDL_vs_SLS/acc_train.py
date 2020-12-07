@@ -223,7 +223,7 @@ def train_model(network, dithering_used, one_against_all, data_set_to_use, path_
     network.evaluate(input=val, label=label_val)
 
     print("\n Start evaluate with test set ")
-    # save accuracy on the NN on test set in results
+    # save accuracy of the NN on test set in results
     results.at[3, 'Neural network'] = network.evaluate(input=test, label=label_test)
 
     print('end')
