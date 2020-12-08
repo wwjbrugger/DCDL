@@ -101,7 +101,7 @@ def calculate_convolution(data_flat, kernel, true_label):
     return label
 
 
-def one_class_against_all(array_label, one_class, number_classes_output):
+def one_class_against_all(array_label, one_class, number_classes_output, kind_of_data):
     """
     converts an array with one_hot_vector for any number of classes into a one_hot_vector,
     whether an example belongs to one class or not
@@ -115,7 +115,8 @@ def one_class_against_all(array_label, one_class, number_classes_output):
             label_one_class_against_all[i, -1] = 1
     num_elements_one_class = int(label_one_class_against_all[:, 0].sum())
     num_elements_rest_class = int(label_one_class_against_all[:, 1].sum())
-    print('number one label in set: {}     number rest label in set {} '.format(num_elements_one_class, num_elements_rest_class))
+    print('{}   number one label in set: {}     number rest label in set {} '.format(
+        kind_of_data,num_elements_one_class, num_elements_rest_class))
     return label_one_class_against_all
 
 

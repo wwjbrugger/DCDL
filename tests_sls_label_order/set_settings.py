@@ -16,8 +16,7 @@ def get_experimental_settings():
 
         # for numbers and fashion should the value be 55000
         # for cifar 45000
-        #todo set back to 55000
-        'size_train_nn': 4000,
+        'size_train_nn': 55000,
 
 
         # size of validation set
@@ -60,8 +59,8 @@ def get_experimental_settings():
         'mode': None ,
         # number_of_disjunction_term_in_SLS
         'number_of_disjunction_term_in_SLS': 40,
-        # todo set back to 2000
-        'maximum_steps_in_SLS': 200,
+
+        'maximum_steps_in_SLS': 2000,
 
         # Probability in SLS to choose a term uniformly drown from formula
         # if missed_instance has positive label

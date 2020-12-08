@@ -5,7 +5,7 @@
 #define BATCH_SIZE 1024
 #define RESTART_ITER 600
 #define PRINT_EVERY 100
-#define VERBOSITY 1
+#define VERBOSITY 0 // for more output 1
 
 namespace multi_core {
 
@@ -151,11 +151,11 @@ namespace multi_core {
                     // Print intermediate results if needed (different styles)
                     if(step % PRINT_EVERY == 1)
                             if(VERBOSITY) {
-                                    //std::cout << '\t'<< "step: " << step ;// << " Min Score "  << min_score << " Wrongly classified as negative " << min_wrongly_negative << " Wrongly classified as positive " << min_wrongly_positive; // << std::endl;
+                                    std::cout << '\t'<< "step: " << step ;// << " Min Score "  << min_score << " Wrongly classified as negative " << min_wrongly_negative << " Wrongly classified as positive " << min_wrongly_positive; // << std::endl;
                             }
                             else{
-                                    std::cout << min_score << " " << min_score_since_last_printed << std::endl;
-                                    min_score_since_last_printed = UINT32_MAX;
+                                    //std::cout << min_score << " " << min_score_since_last_printed << std::endl;
+                                    //min_score_since_last_printed = UINT32_MAX;
                             }
 
             // Calculate validation score
@@ -791,7 +791,7 @@ namespace multi_core {
 
         }
 
-        std::cout  <<  std::endl;
+        //std::cout  <<  std::endl;
 
     }
 

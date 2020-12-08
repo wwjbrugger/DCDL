@@ -130,13 +130,16 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
     # convert for one-against-all testing one-hot label with 10 classes in one-hot label with two classes ([one, rest])
     label_train_nn = help_vis.one_class_against_all(array_label=label_train_nn,
                                                           one_class=one_against_all,
-                                                          number_classes_output=number_class_to_predict)
+                                                          number_classes_output=number_class_to_predict,
+                                                    kind_of_data='train')
     label_val = help_vis.one_class_against_all(array_label=label_val,
                                                      one_class=one_against_all,
-                                                     number_classes_output=number_class_to_predict)
+                                                     number_classes_output=number_class_to_predict,
+                                               kind_of_data='validation')
     label_test = help_vis.one_class_against_all(array_label=label_test,
                                                       one_class=one_against_all,
-                                                      number_classes_output=number_class_to_predict)
+                                                      number_classes_output=number_class_to_predict,
+                                                kind_of_data='test')
 
     # show data after preprocessing
     dith.visualize_pic(pic_array=train_nn,
@@ -146,39 +149,3 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
                        colormap=plt.cm.Greys)
 
     return train_nn, label_train_nn, val, label_val, test, label_test
-
-
-
-def train_model(network, dithering_used, one_against_all, data_set_to_use, size_train_nn, size_valid_nn, convert_to_grey, values_max_1, data_dic):
-
-
-    train_nn, label_train_nn, val, label_val,  test, label_test = prepare_dataset(size_train_nn = size_train_nn,
-                                                                                 size_valid_nn=size_valid_nn,
-                                                                                 dithering_used=dithering_used,
-                                                                                 one_against_all=one_against_all,
-                                                                                 number_class_to_predict=network.classes,
-                                                                                 data_set_to_use=data_set_to_use,
-                                                                                 convert_to_grey = convert_to_grey,
-                                                                                 values_max_1 = values_max_1)
-
-    print("Training", flush=True)
-
-    # train network
-    print("Start Training")
-    network.training(train_nn, label_train_nn, test, label_test)
-
-    # evaluate accuracy of the NN on test set
-    print("\n Start evaluate with test set ")
-    network.evaluate(test, label_test)
-    print("\n Start evaluate with validation set ")
-    network.evaluate(val, label_val)
-
-    # save preprocessed datasets (needed for later evaluation)
-    print ('\n\n used data sets are set to data_dic' )
-    data_dic['dither_train_data']= train_nn
-    data_dic['train_label_one_hot'] = label_train_nn
-    data_dic['dither_val_data'] = val
-    data_dic['val_label_one_hot'] = label_val
-    data_dic['dither_test_data'] = test
-    data_dic['data/data_set_label_test.npy'] = label_test
-    return  data_dic
