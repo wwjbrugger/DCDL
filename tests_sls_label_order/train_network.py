@@ -16,13 +16,15 @@ def balance_data_set(data_list, label_list, one_class_against_all):
     Balances data for one against all tests.
     Half of the returned data is from label 'one' class
     The other half consists of equal parts of 'all' other classes.
+    # input one-hot-vector [[0. 0. 0. 0. 0. 0. 0. 1. 0. 0.], [0. 0. 0. 0. 1. 0. 0. 0. 0. 0.], [0. 1. 0. 0. 0. 0. 0. 0. 0. 0.], [0. 0. 0. 0. 1. 0. 0. 0. 0. 0.], [1. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
     """
     number_classes = label_list.shape[1]
     balanced_dataset = []
     balanced_label = []
     # how many example we have in the set of the 'one' class  from a label which is part of 'all' other classes
     num_elements_one_class = int(label_list[:, one_class_against_all].sum())
-    num_elements_minority = int(num_elements_one_class / (number_classes - 1))
+    num_elements_minority_exact = num_elements_one_class / (number_classes - 1)
+    num_elements_minority = int(np.around(num_elements_minority_exact))
 
     for i in range(number_classes):
         # get all indices of data which belong to label i
@@ -139,7 +141,7 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
     # show data after preprocessing
     dith.visualize_pic(pic_array=train_nn,
                        label_array=label_train_nn,
-                       class_names=class_names,
+                       class_names=['main', 'rest'],
                        title=" pic how they are feed into net",
                        colormap=plt.cm.Greys)
 

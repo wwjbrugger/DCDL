@@ -48,6 +48,7 @@ uint32_t sls_val(uint32_t clauses_n,                          // # of DNFs
              ){
        return sls_test(clauses_n, maxSteps, p_g1, p_g2, p_s, data, label, data_val, label_val, data_val, label_val,pos_neg, on_off, pos_neg_to_store, on_off_to_store,
                  vector_n, vector_n_val, vector_n_val, features_n, batch, cold_restart, decay, min_prob, zero_init);
+
 }
 
 uint32_t sls_test(uint32_t clauses_n,                          // # of DNFs

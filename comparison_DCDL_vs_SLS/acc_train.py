@@ -8,30 +8,6 @@ import comparison_DCDL_vs_SLS.dithering as dith
 import helper_methods as helper_methods
 import matplotlib.pyplot as plt
 
-
-
-# def balance_data_set(data, label, percent_of_major_label_to_keep):
-#     old balance method
-#     """
-#     :param data:  dithered data
-#     :param label: label in one hot encoding. [1,0] data is part of the 'one' label.   [0,1] data is part of the 'all' label.
-#     :param percent_of_major_label_to_keep:
-#     :return:
-#     """
-#     unique, counts = np.unique(label[:, 0], return_counts=True)
-#     print('size_of_set before balancing {} with {}'.format(data.shape[0], dict(zip(unique, counts))))
-#     # keeps data if label is part of the one label and
-#     # by a chance of percent_of_major_label_to_keep if it's a rest class
-#     index_to_keep = [i for i, one_hot_label in enumerate(label) if
-#                      one_hot_label[0] == 1 or random.random() < percent_of_major_label_to_keep]
-#     # get balanced data and label
-#     data = data[index_to_keep]
-#     label = label[index_to_keep]
-#
-#     unique, counts = np.unique(label[:, 0], return_counts=True)
-#     print('size_of_set {} with {}'.format(data.shape[0], dict(zip(unique, counts))))
-#     return data, label
-
 def balance_data_set(data_list, label_list, one_class_against_all, seed = None):
     """
     Balances data for one against all tests.
@@ -49,7 +25,8 @@ def balance_data_set(data_list, label_list, one_class_against_all, seed = None):
     balanced_label = []
     # how many example we have in the set of the 'one' class  from a label which is part of 'all' other classes
     num_elements_one_class = int(label_list[:, one_class_against_all].sum())
-    num_elements_minority = int(num_elements_one_class/ (number_classes-1))
+    num_elements_minority_exact = num_elements_one_class / (number_classes - 1)
+    num_elements_minority = int(np.around(num_elements_minority_exact))
 
     for i in range(number_classes):
         # get all indices of data which belong to label i
@@ -173,7 +150,7 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
     # show data after preprocessing
     dith.visualize_pic(pic_array = train_nn,
                        label_array = label_train_nn,
-                       class_names = class_names,
+                       class_names = ['main', 'rest'],
                        title = " pic how they are feed into net",
                        colormap =plt.cm.Greys)
 

@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 
 class Boolean_formula:
-    def __init__(self, position_of_relevant_pixel, position_of_not,  number_of_disjunction_term_in_SLS, number_of_relevant_variables = None, total_error = None ):
+    def __init__(self, position_of_relevant_pixel, position_of_not,  number_of_disjunction_term_in_SLS, number_of_relevant_variables = None, total_error_on_validation_set = None ):
         """
               @param position_of_relevant_pixel: indicate if variable has an influence on evaluation of formula
               possible values: 1 variable has influence, 0 variable has not influence
@@ -32,7 +32,7 @@ class Boolean_formula:
 
         self.formula_in_arrays_code = None
         self.number_of_relevant_variables = number_of_relevant_variables
-        self.total_error = total_error
+        self.total_error_on_validation_set = total_error_on_validation_set
         self.shape_input_data = None
         self.shape_output_data = None
         self.train_acc = None
