@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 
-class Boolsche_formel:
+class Boolean_formula:
     def __init__(self, position_of_relevant_pixel, position_of_not,  number_of_disjunction_term_in_SLS, number_of_relevant_variables = None, total_error = None ):
         """
               @param position_of_relevant_pixel: indicate if variable has an influence on evaluation of formula
@@ -35,6 +35,7 @@ class Boolsche_formel:
         self.total_error = total_error
         self.shape_input_data = None
         self.shape_output_data = None
+        self.train_acc = None
         if type(position_of_relevant_pixel) is np.ndarray:
             self.variable_pro_term= self.calc_variable_pro_term(position_of_relevant_pixel)
             self.pixel_relevant_in_number_code, self.pixel_relevant_in_arrays_code = self.fill_pixel_relevant_variabels(position_of_relevant_pixel)

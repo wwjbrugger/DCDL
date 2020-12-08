@@ -159,7 +159,7 @@ class sls_val(object):
                  min_prob,  # Not decay below this threshold
                  zero_init  # Wether to go bigger steps in case of no sucess
                  ):
-        sls_val_func_obj(clauses_n,
+        total_error = sls_val_func_obj(clauses_n,
                          maxSteps,
                          p_g1,
                          p_g2,
@@ -180,6 +180,7 @@ class sls_val(object):
                          decay,
                          min_prob,
                          zero_init)
+        self.total_error = total_error
 
 class sls_test(object):
     def __init__(self,
@@ -208,7 +209,7 @@ class sls_test(object):
                  min_prob = 0,  # Not decay below this threshold
                  zero_init = False  # Wether to go bigger steps in case of no sucess
                  ):
-        sls_test_func_obj(clauses_n,
+        total_error = sls_test_func_obj(clauses_n,
                          maxSteps,
                          p_g1,
                          p_g2,
@@ -232,6 +233,7 @@ class sls_test(object):
                          decay,
                          min_prob,
                          zero_init)
+        self.total_error = total_error
 
 class calc_prediction(object):
     def __init__(self, data, prediction_label, pos_neg_to_store,  on_off_to_store, vector_n,  clauses_n, features_n):
