@@ -3,56 +3,6 @@ os.environ["BLD_PATH"] = "../parallel_sls/bld/Parallel_SLS_shared"
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-
-
-def calculate_padding_parameter(shape_input_pic, filter_size, stride, ):
-    # calculate how many zeros have to be pad on input to perform convolution
-    in_height = shape_input_pic[1]
-    in_width = shape_input_pic[2]
-    out_height = np.ceil(float(in_height) / float(stride))
-    out_width = np.ceil(float(in_width) / float(stride))
-
-    pad_along_height = np.max((out_height - 1) * stride +
-                              filter_size - in_height, 0)
-    pad_along_width = np.max((out_width - 1) * stride +
-                             filter_size - in_width, 0)
-    pad_top = pad_along_height // 2
-    pad_bottom = pad_along_height - pad_top
-    pad_left = pad_along_width // 2
-    pad_right = pad_along_width - pad_left
-
-    return ((0, 0), (int(pad_top), int(pad_bottom)), (int(pad_left), int(pad_right)), (0, 0))
-
-
-def data_in_kernel(arr, stepsize=2, width=4):  # kernel views
-    # calculates which data are under the kernel/filter of a convolution operation
-    npad = calculate_padding_parameter(arr.shape, width, stepsize)
-    training_set_padded = np.pad(arr, pad_width=npad, mode='constant', constant_values=0)
-
-    dims = training_set_padded.shape
-    temp = [training_set_padded[picture, row:row + width, col:col + width, :]  # .flatten()
-            for picture in range(0, dims[0]) for row in range(0, dims[1] - width + 1, stepsize) for col in
-            range(0, dims[2] - width + 1, stepsize)]
-    out_arr = np.stack(temp, axis=0)
-
-    return out_arr
-
-
-def permutate_and_flaten(data, label, channel_label):
-    # this method has logic to iterate through input data and channel in the method.
-    temp = []
-    for pic in range(data.shape[0]):
-        pic_temp = []
-        for channel in range(data.shape[3]):
-             pic_temp.append(np.reshape(data[pic,:,:,channel], -1))
-        temp.append(np.reshape(pic_temp, -1))
-    data_flatten = np.array(temp)
-    label_set_flat = label[:, :, :, channel_label].reshape(-1)
-    return data_flatten, label_set_flat
-
-
-
 def transform_to_boolean(array):
     # cast data from -1 to 0.
     # 0 is interpreted as False
@@ -77,7 +27,7 @@ def visualize_single_formula(kernel, kernel_width, title, set_vmin_vmax):
     plt.show()
 
 
-def one_class_against_all(array_label, one_class, number_classes_output):
+def one_class_against_all(array_label, one_class, number_classes_output, kind_of_data):
     """
     converts an array with one_hot_vector for any number of classes into a one_hot_vector,
     whether an example belongs to one class or not
@@ -91,7 +41,8 @@ def one_class_against_all(array_label, one_class, number_classes_output):
             label_one_class_against_all[i, -1] = 1
     num_elements_one_class = int(label_one_class_against_all[:, 0].sum())
     num_elements_rest_class = int(label_one_class_against_all[:, 1].sum())
-    print('number one label in set: {}     number rest label in set {} '.format(num_elements_one_class, num_elements_rest_class))
+    print('{}   number one label in set: {}     number rest label in set {} '.format(
+        kind_of_data, num_elements_one_class, num_elements_rest_class))
     return label_one_class_against_all
 
 

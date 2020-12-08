@@ -37,8 +37,8 @@ def prepare_data_for_sls(data, label):
     label_flat = helper_label_order.transform_to_boolean(label_flat)
     return training_set_flat, label_flat
 
-def calc_prediction(data, original_label, found_formula):
 
+def calc_prediction(data, original_label, found_formula):
     num_input = data.shape[0]
     prediction = SLS.calc_prediction_in_C(data=data,
                                           label_shape=original_label.shape, found_formula=found_formula)
@@ -102,7 +102,6 @@ if __name__ == '__main__':
                      'settings_dic_SLS': settings_dic_SLS},
                     f)
 
-
     # pandas files for results
     column_name = ['val_positive_label', 'val_inverse_label',
                    'no_val_positive_label', 'no_val_inverse_label']
@@ -127,7 +126,7 @@ if __name__ == '__main__':
         train, val, test, \
         label_train, label_val, label_test, \
         inverse_label_train, inverse_label_val, inverse_label_test = get_data_for_SLS()
-
+#---------------------------------------0----------------------------------------------------------
         # SLS without validation and test and normal label
         found_formula_without_validation = SLS.rule_extraction_with_sls(
             train=train,
@@ -149,25 +148,24 @@ if __name__ == '__main__':
         # validation set = train set in this case
         train_acc_without = found_formula_without_validation.train_acc
         # get acc from evaluating formula with train data
-        prediction_acc_train_without =  calc_prediction(data=train,
-                                                             original_label=label_train,
-                                                             found_formula=found_formula_without_validation)
+        prediction_acc_train_without = calc_prediction(data=train,
+                                                       original_label=label_train,
+                                                       found_formula=found_formula_without_validation)
         print('no_val_positive_label: training {}  , prediction_train  {}  '.format(train_acc_without,
-                                                                                  prediction_acc_train_without))
+                                                                                    prediction_acc_train_without))
         np.testing.assert_equal(actual=train_acc_without,
                                 desired=prediction_acc_train_without,
-                                err_msg = 'Acc during training and when running in prediction mode \n'\
-                                           'are different when running SLS without validation set \n'\
-                                           'training without validation: {}'\
-                                           'prediction for same data: {}'.format(train_acc_without,
-                                                                                 prediction_acc_train_without))
+                                err_msg='Acc during training and when running in prediction mode \n' \
+                                        'are different when running SLS without validation set \n' \
+                                        'training without validation: {}' \
+                                        'prediction for same data: {}'.format(train_acc_without,
+                                                                              prediction_acc_train_without))
 
         results.at[one_against_all, 'no_val_positive_label'] = \
             calc_prediction(data=test,
                             original_label=label_test,
                             found_formula=found_formula_without_validation)
-
-
+#------------------------------------------1-------------------------------------------------------------
         # SLS without validation and test  and inverse label
         found_formula_inverse_without_validation = SLS.rule_extraction_with_sls(
             train=train,
@@ -192,8 +190,8 @@ if __name__ == '__main__':
         train_acc_without_inverse = found_formula_inverse_without_validation.train_acc
         # get acc from evaluating formula with train data
         prediction_acc_train_without_inverse = calc_prediction(data=train,
-                                                       original_label=inverse_label_train,
-                                                       found_formula=found_formula_inverse_without_validation)
+                                                               original_label=inverse_label_train,
+                                                               found_formula=found_formula_inverse_without_validation)
         print('no_val_positive_label: training {}  , prediction_train  {}  '.format(train_acc_without_inverse,
                                                                                     prediction_acc_train_without_inverse))
 
@@ -209,11 +207,10 @@ if __name__ == '__main__':
             calc_prediction(data=test,
                             original_label=inverse_label_test,
                             found_formula=found_formula_inverse_without_validation)
-
-
-
+#------------------------------------------------------2-----------------------------------------------
         # SLS with validation and normal label
         found_formula_val = SLS.rule_extraction_with_sls_val(
+            # found_formula_val=SLS.rule_extraction_with_sls(
             train=train,
             train_label=label_train,
             val=val,
@@ -237,8 +234,8 @@ if __name__ == '__main__':
         train_acc_val = found_formula_val.train_acc
         # get acc from evaluating formula with train data
         prediction_acc_train_val = calc_prediction(data=val,
-                                                               original_label=label_val,
-                                                               found_formula=found_formula_val)
+                                                   original_label=label_val,
+                                                   found_formula=found_formula_val)
         print('no_val_positive_label: training {}  , prediction_train  {}  '.format(train_acc_val,
                                                                                     prediction_acc_train_val))
 
@@ -282,8 +279,8 @@ if __name__ == '__main__':
         train_acc_val_inverse = found_formula_inverse_val.train_acc
         # get acc from evaluating formula with train data
         prediction_acc_train_val_inverse = calc_prediction(data=val,
-                                                               original_label=inverse_label_val,
-                                                               found_formula=found_formula_inverse_val)
+                                                           original_label=inverse_label_val,
+                                                           found_formula=found_formula_inverse_val)
         print('no_val_positive_label: training {}  , prediction_train  {}  '.format(train_acc_val_inverse,
                                                                                     prediction_acc_train_val_inverse))
 

@@ -3,32 +3,6 @@ import numpy as np
 import parallel_sls.python_wrapper.sls_wrapper as sls_wrapper
 import parallel_sls.python_wrapper.data_wrapper as data_wrapper
 
-# interface for calling SLS Implementation in C
-# depending on mode different splits of datasets are used for finding rules
-# train -> rule_extraction_with_sls
-# train_val -> rule_extraction_with_sls_val
-# train_val_test -> rule_extraction_with_sls
-# each mode returns an found_formula
-# def get_logical_formulas_with_SLS(mode, data, label, number_of_disjunction_term, maximum_steps_in_SLS, kernel,
-#                                  p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob, zero_init):
-#     if mode in 'train':
-#         return rule_extraction_with_sls(data=data, label=label, number_of_disjunction_term = number_of_disjunction_term,
-#                                  maximum_steps_in_SLS=maximum_steps_in_SLS, kernel=kernel,
-#                                  p_g1=p_g1, p_g2=p_g2, p_s=p_s, batch=batch,
-#                                  cold_restart=cold_restart, decay=decay, min_prob=min_prob, zero_init=zero_init)
-#     elif mode in 'train_val':
-#         return rule_extraction_with_sls_val(data=data, label=label, number_of_disjunction_term = number_of_disjunction_term,
-#                                  maximum_steps_in_SLS=maximum_steps_in_SLS, kernel=kernel,
-#                                  p_g1=p_g1, p_g2=p_g2, p_s=p_s, batch=batch,
-#                                  cold_restart=cold_restart, decay=decay, min_prob=min_prob, zero_init=zero_init)
-#     elif mode in 'train_val_test':
-#         return rule_extraction_with_sls(data=data, label=label, number_of_disjunction_term = number_of_disjunction_term,
-#                                  maximum_steps_in_SLS=maximum_steps_in_SLS, kernel=kernel,
-#                                  p_g1=p_g1, p_g2=p_g2, p_s=p_s, batch=batch,
-#                                  cold_restart=cold_restart, decay=decay, min_prob=min_prob, zero_init=zero_init)
-#     else:
-#         raise ValueError('mode can only be \'train\', \'train_val\' or \'train_val_test\'  your mode where: {}'.format(mode))
-#
 """
 Input in SLS are values in True/False Form 
 """
@@ -42,7 +16,7 @@ def rule_extraction_with_sls_test (train, train_label, val, val_label, test, tes
     # first_split, second_split = calculate_border_values_train_test_validation(data)
     # number of input variables is rounded up to a multiple of eight
     # C++ implementation stores formula in uint 8 variables
-    num_of_features = (8 - train.shape[1] % 8) + train.shape[1]
+    num_of_features = (8 - train.shape[1]) % 8 + train.shape[1]
     # how many uint8 variables are needed
     num_of_8_bit_units_to_store_feature = int(num_of_features / 8)
 
@@ -120,41 +94,29 @@ def rule_extraction_with_sls_test (train, train_label, val, val_label, test, tes
     found_formula.train_acc = (val.shape[0] - found_formula.total_error_on_validation_set) / val.shape[0]
     return found_formula
 
-# todo
 def rule_extraction_with_sls_val(train, train_label, val, val_label,
                                           number_of_disjunction_term, maximum_steps_in_SLS,
                                           kernel,
                                           p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob,
                                           zero_init
                                           ):
-    # run sls wit train and validation data
-    # This method returns the indices at which the data set is divided into the training, validation and test set.
-    # Since only the training and validation set is used,
-    # the training set is assigned the data of the training set + validation set.
-    # The validation set is filled with the test set.
+    # run sls with train and validation data
 
-    # _, train_split = calculate_border_values_train_test_validation(data)
 
     # number of input variables is rounded up to a multiple of eight
     # C++ implementation stores formula in uint 8 variables
-    num_of_features = (8 - train.shape[1] % 8) + train.shape[1]
+    num_of_features = (8 - train.shape[1]) % 8 + train.shape[1]
 
     # how many uint8 variables are needed
     num_of_8_bit_units_to_store_feature = int(num_of_features / 8)
 
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # pack data in C## compatible arrays
+
     training_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(train)
     training_set_label_bool_continguous = np.ascontiguousarray(train_label, dtype=np.bool)
 
-    validation_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(val)
-    validation_set_label_bool_continguous = np.ascontiguousarray(val_label, dtype=np.bool)
-
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    # training_set_data_packed_continguous, training_set_label_bool_continguous \
-    #     , validation_set_data_packed_continguous, validation_set_label_bool_continguous \
-    #     , test_set_data_packed_continguous, test_set_label_bool_continguous \
-    #     = pack_and_store_contiguous_array_for_sls(data, label, first_split, second_split)
+    val_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(val)
+    val_set_label_bool_continguous = np.ascontiguousarray(val_label, dtype=np.bool)
 
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Free space to store formulas found
@@ -190,22 +152,21 @@ def rule_extraction_with_sls_val(train, train_label, val, val_label,
                                   p_s=p_s,  # Prob of rand term in H
                                   data=training_set_data_packed_continguous,
                                   label=training_set_label_bool_continguous,
-                                  data_val=validation_set_data_packed_continguous,
-                                  label_val=validation_set_label_bool_continguous,
+                                  data_val=val_set_data_packed_continguous,
+                                  label_val=val_set_label_bool_continguous,
                                   pos_neg=pos_neg,  # Positive or negative for formula
                                   on_off=on_off,  # Mask for formula
                                   pos_neg_to_store=pos_neg_to_store,  # Positive or negative for formula
                                   on_off_to_store=on_off_to_store,  # Mask for formula
                                   vector_n=int(train.shape[0]),  # of data vectors !!!!NEEDS TO BE BIGGER THEN BATCH_SIZE!!!!
-                                  vector_n_val=(val.shape[0]),
+                                  vector_n_val=int(val.shape[0]),
                                   # of data vectors !!!!NEEDS TO BE BIGGER THEN BATCH_SIZE!!!!
                                   features_n=num_of_features,  # of Features
                                   batch=batch,
                                   cold_restart=cold_restart,
                                   decay=decay,
                                   min_prob=min_prob,
-                                  zero_init=zero_init
-                                  )
+                                  zero_init=zero_init)
     found_formula = bofo.Boolean_formula(on_off_to_store, pos_neg_to_store, number_of_disjunction_term,
                                          total_error_on_validation_set=sls_obj.total_error)
     # calculate accuracy on train set
@@ -214,6 +175,7 @@ def rule_extraction_with_sls_val(train, train_label, val, val_label,
     found_formula.train_acc = (val.shape[0] - found_formula.total_error_on_validation_set) / val.shape[0]
     return found_formula
 
+#---------------------------------------------------------------------------------------------
 
 def rule_extraction_with_sls(train, train_label,
                                                                  number_of_disjunction_term, maximum_steps_in_SLS,
@@ -290,7 +252,7 @@ def rule_extraction_with_sls(train, train_label,
     return found_formula
     # return bofo.Boolean_formula(on_off_to_store, pos_neg_to_store, number_of_disjunction_term, total_error = sls_obj.total_error)
 
-
+#------------------------------------------------------------------------------------------------
 # calc prediction of learned SLS in C
 def calc_prediction_in_C(data, label_shape, found_formula):
     # use C++ code to calculate prediction for given data with found formula
