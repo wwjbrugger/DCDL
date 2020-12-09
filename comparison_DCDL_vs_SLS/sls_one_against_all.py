@@ -40,12 +40,26 @@ def SLS_black_box_train(path_to_use, number_of_disjunction_term_in_SLS_BB, maxim
         label_set = [ np.argmax(one_hot_label) for one_hot_label in label_set]
     label_set = helper_methods.transform_to_boolean(label_set)
     label_set_flat = label_set
+
     # get formula for SLS blackbox approach
-    found_formula = \
-        SLS.rule_extraction_with_sls_without_validation(training_set_flat, label_set_flat, number_of_disjunction_term_in_SLS_BB,
-                                                    maximum_steps_in_SLS_BB)
+    found_formula=SLS.rule_extraction_with_sls(
+        train=training_set_flat,
+        train_label=label_set_flat,
+        number_of_disjunction_term=number_of_disjunction_term_in_SLS_BB,
+        maximum_steps_in_SLS=maximum_steps_in_SLS_BB,
+        kernel=False,
+        p_g1=.5,
+        p_g2=.5,
+        p_s=.5,
+        batch=True,
+        cold_restart=True,
+        decay=0,
+        min_prob=0,
+        zero_init=False
+    )
+
     # calculate accuracy on train set
-    accuracy = (training_set.shape[0] - found_formula.total_error) / training_set.shape[0]
+    accuracy = (training_set.shape[0] - found_formula.total_error_on_validation_set) / training_set.shape[0]
     print("Accuracy of SLS: ", accuracy, '\n')
     # save formula for SLS blackbox approach
     pickle.dump(found_formula, open(path_to_use['logic_rules_SLS'], "wb"))

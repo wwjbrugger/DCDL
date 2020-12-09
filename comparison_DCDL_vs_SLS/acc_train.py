@@ -137,13 +137,16 @@ def prepare_dataset(size_train_nn, size_valid_nn, dithering_used, one_against_al
     # convert for one-against-all testing one-hot label with 10 classes in one-hot label with two classes ([one, rest])
     label_train_nn = helper_methods.one_class_against_all(array_label = label_train_nn,
                                                 one_class= one_against_all,
-                                                number_classes_output = number_class_to_predict)
+                                                number_classes_output = number_class_to_predict,
+                                                          kind_of_data='train')
     label_val = helper_methods.one_class_against_all(array_label =  label_val,
                                            one_class = one_against_all,
-                                           number_classes_output = number_class_to_predict)
+                                           number_classes_output = number_class_to_predict,
+                                                     kind_of_data='validation')
     label_test = helper_methods.one_class_against_all(array_label = label_test,
                                             one_class = one_against_all,
-                                            number_classes_output=number_class_to_predict)
+                                            number_classes_output=number_class_to_predict,
+                                                      kind_of_data='test')
 
 
 

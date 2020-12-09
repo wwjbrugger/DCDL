@@ -250,7 +250,7 @@ if __name__ == '__main__':
             raise ValueError('You choose a dataset which is not supported. \n Datasets which are allowed are numbers(Mnist), fashion(Fashion-Mnist) and cifar')
     else:
         # values if you start script without parameter
-        data_set_to_use = 'numbers'  # 'numbers' or 'fashion'
+        data_set_to_use = 'cifar'  # 'numbers' or 'fashion'
         # Label you want to test against all
         one_against_all_l = [4]
 
