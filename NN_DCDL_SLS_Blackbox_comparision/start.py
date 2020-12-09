@@ -135,14 +135,14 @@ if __name__ == '__main__':
         dropout_rate=setting_dic_NN['dropout_rate'],
         # use arg_min function to cast one hot label to true or false
         arg_min_label=general_settings_dic['arg_min_label'],
-        loging=setting_dic_NN['loging'],
+        logging=setting_dic_NN['logging'],
         save_path_logs=setting_dic_NN['save_path_logs'])
 
     neural_net.training(train=get_data.transform_boolean_to_minus_one_and_one(data_dic['train']),
                         label_train=data_dic['label_train'],
                         val=get_data.transform_boolean_to_minus_one_and_one(data_dic['val']),
                         label_val=data_dic['label_val'],
-                        loging=setting_dic_NN['loging'])
+                        logging=setting_dic_NN['logging'])
     # --------------------------------------evaluate_neural_net-------------------------------------------------
 
     # save accuracy on the NN on train set in results

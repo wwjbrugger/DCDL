@@ -91,7 +91,7 @@ def get_experimental_settings():
         # dropout rate
         'dropout_rate': 0.4,
         # use logging mode while training the net
-        'loging':True,
+        'logging':True,
 
 
     }

@@ -45,7 +45,7 @@ class network_two_convolution():
                  dropout_rate,
                  # use arg_min function to cast one hot label to true or false
                  arg_min_label,
-                 loging,
+                 logging,
                  save_path_logs):
 
         # Clears the default graph stack and resets the global default graph.
@@ -70,7 +70,7 @@ class network_two_convolution():
         self.shape_max_pooling_layer = shape_max_pooling_layer
         self.stride_max_pooling = stride_max_pooling
         self.dropout_rate = dropout_rate
-        self.loging = loging
+        self.logging = logging
         self.save_path_logs = save_path_logs
 
 
@@ -154,10 +154,10 @@ class network_two_convolution():
 
         self.saver = tf.compat.v1.train.Saver()
 
-    def training(self, train, label_train, val, label_val, loging):
+    def training(self, train, label_train, val, label_val, logging):
         loss_list, val_list = [], []
         with tf.compat.v1.Session() as sess:
-            if loging:
+            if logging:
                 # logs can be visualized in tensorboard.
                 # useful for see structure of the graph
                 # Update possibility (was not changed to be consistent with existing experiment results):
