@@ -213,6 +213,12 @@ def transform_to_boolean(array):
     boolean_array = np.maximum(array, 0).astype(np.bool)
     return boolean_array
 
+def transform_boolean_to_minus_one_and_one(array):
+    # cast True to 1 and False to -1
+    array_minus_one_and_one = np.where(array,1,-1)
+    return array_minus_one_and_one
+
+
 
 def convert_to_grey(pic_array):
     """ convert rgb pictures in grey scale pictures """

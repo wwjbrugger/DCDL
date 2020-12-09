@@ -138,26 +138,26 @@ if __name__ == '__main__':
         loging=setting_dic_NN['loging'],
         save_path_logs=setting_dic_NN['save_path_logs'])
 
-    neural_net.training(train=data_dic['train'],
+    neural_net.training(train=get_data.transform_boolean_to_minus_one_and_one(data_dic['train']),
                         label_train=data_dic['label_train'],
-                        val=data_dic['val'],
+                        val=get_data.transform_boolean_to_minus_one_and_one(data_dic['val']),
                         label_val=data_dic['label_val'],
                         loging=setting_dic_NN['loging'])
     # --------------------------------------evaluate_neural_net-------------------------------------------------
 
     # save accuracy on the NN on train set in results
     results.at['Training set', 'Neural network'] = \
-        neural_net.evaluate(input=data_dic['train'],
+        neural_net.evaluate(input=get_data.transform_boolean_to_minus_one_and_one(data_dic['train']),
                             label=data_dic['label_train'])
 
     # should be the same value as the highest during training
     results.at['Validation set', 'Neural network'] = \
-        neural_net.evaluate(input=data_dic['val'],
+        neural_net.evaluate(input=get_data.transform_boolean_to_minus_one_and_one(data_dic['val']),
                             label=data_dic['label_val'])
 
     # save accuracy of the NN on test set in results
     results.at['Test set', 'Neural network'] = \
-        neural_net.evaluate(input=data_dic['test'],
+        neural_net.evaluate(input=get_data.transform_boolean_to_minus_one_and_one(data_dic['test']),
                             label=data_dic['label_test'])
 
     print('results after training neural net \n',
