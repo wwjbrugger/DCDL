@@ -19,7 +19,7 @@ import set_settings_cifar as settings_cifar
 import set_settings_numbers_fashion as settings_number_fashion
 
 import NN_DCDL_SLS_Blackbox_comparision.Neural_net_model.NN_model as NN_model
-
+import NN_DCDL_SLS_Blackbox_comparision.SLS_black_box_model.SLS_black_box as SLS_black_box_model
 
 if __name__ == '__main__':
 
@@ -34,14 +34,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # -------------------------- get dictionaries with settings and store them ---------------
     if args.dataset in ('numbers' or 'fashion'):
-        general_settings_dic, setting_dic_NN,\
-        settings_dic_SLS, settings_dic_DCDL = \
+        general_settings_dic, setting_dic_NN, \
+        settings_dic_SLS_black_box_label, settings_dic_DCDL = \
             settings_number_fashion.get_experimental_settings()
 
 
     elif args.dataset in 'cifar':
-        general_settings_dic, setting_dic_NN,\
-        settings_dic_SLS, settings_dic_DCDL = \
+        general_settings_dic, setting_dic_NN, \
+        settings_dic_SLS_black_box_label, settings_dic_DCDL = \
             settings_cifar.get_experimental_settings()
     else:
         raise ValueError('chosen dataset [{}] is not supported '
@@ -61,10 +61,11 @@ if __name__ == '__main__':
     path_to_store_settings.parent.mkdir(parents=True, exist_ok=True)
     print('settings are stored in: ', path_to_store_settings)
 
+    # todo add other settings
     with open(path_to_store_settings, "wb") as f:
         pickle.dump({'general_settings_dic': general_settings_dic,
                      'setting_dic_NN': setting_dic_NN,
-                     'settings_dic_SLS': settings_dic_SLS},
+                     'settings_dic_SLS_black_box_label': settings_dic_SLS_black_box_label},
                     f)
 
     # --------------------where to store neural network model-----------------------------------
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     print('pandas results are stored in: ', path_to_store_pd_results)
 
     # create empty pandas files for results
-    column_name = ['Neural network', 'DCDL', 'SLS BB prediction', 'SLS BB train']
+    column_name = ['Neural network', 'DCDL', 'SLS BB prediction', 'SLS BB label']
 
     results = pd.DataFrame(columns=column_name)
 
@@ -112,8 +113,44 @@ if __name__ == '__main__':
         values_max_1=general_settings_dic['pic_range_0_1'],
         visualize_data=general_settings_dic['visualize_data'])
 
-    #---------------------------------------train SLS Blackbox with Label -----------------------------------
+    # ---------------------------------------train and evaluate SLS Blackbox with Label -----------------------------------
+    SLS_black_box_label = SLS_black_box_model.SLS_black_box(mode = settings_dic_SLS_black_box_label['mode'],
+                                              arg_min_label = general_settings_dic['arg_min_label'],
+                                              number_of_disjunction_term=settings_dic_SLS_black_box_label[
+                                                  'number_of_disjunction_term_in_SLS'],
+                                              maximum_steps_in_SLS=settings_dic_SLS_black_box_label['maximum_steps_in_SLS'],
+                                              init_with_kernel=settings_dic_SLS_black_box_label['init_with_kernel'],
+                                              p_g1=settings_dic_SLS_black_box_label['p_g1'],
+                                              p_g2=settings_dic_SLS_black_box_label['p_g2'],
+                                              p_s=settings_dic_SLS_black_box_label['p_s'],
+                                              batch=settings_dic_SLS_black_box_label['batch'],
+                                              cold_restart=settings_dic_SLS_black_box_label['cold_restart'],
+                                              decay=settings_dic_SLS_black_box_label['decay'],
+                                              min_prob=settings_dic_SLS_black_box_label['min_prob'],
+                                              zero_init=settings_dic_SLS_black_box_label['zero_init']
+                                             )
+    SLS_black_box_label.train(train_data = data_dic['train'],
+                              train_label= data_dic['label_train'],
+                              validation_data=data_dic['val'],
+                              validation_label=data_dic['label_val'])
 
+    # save accuracy of the SLS_black_box_label on train set in results
+    results.at['Training set', 'SLS BB label'] = \
+        SLS_black_box_label.prediction(data=data_dic['train'],
+                                       original_label=data_dic['label_train'])
+
+    # save accuracy of the SLS_black_box_label on val set in results
+    results.at['Validation set', 'SLS BB label'] = \
+        SLS_black_box_label.prediction(data=data_dic['val'],
+                                       original_label=data_dic['label_val'])
+
+    # save accuracy of the NN on test set in results
+    results.at['Test set', 'SLS BB label'] = \
+        SLS_black_box_label.prediction(data=data_dic['test'],
+                            original_label=data_dic['label_test'])
+
+    print('results after training SLS black box label \n',
+          tabulate(results.round(2), headers='keys', tablefmt='psql'))
 
     # --------------------------------------train neural net-------------------------------------------------
     neural_net = NN_model.network_two_convolution(
@@ -174,26 +211,18 @@ if __name__ == '__main__':
     # ------------------------------------- train DCDL -----------------------------------------
     DCDL_data_dic = extract_data_from_neural_net.extract_data(
         neural_net=neural_net,
-        input_neural_net = get_data.transform_boolean_to_minus_one_and_one(data_dic['train']),
-        operations_in_DCDL = settings_dic_DCDL['operations'],
-        print_nodes_in_neural_net = settings_dic_DCDL['print_nodes_in_neural_net'])
+        input_neural_net=get_data.transform_boolean_to_minus_one_and_one(data_dic['train']),
+        operations_in_DCDL=settings_dic_DCDL['operations'],
+        print_nodes_in_neural_net=settings_dic_DCDL['print_nodes_in_neural_net'])
 
     DCDL_val_dic = extract_data_from_neural_net.extract_data(
         neural_net=neural_net,
         input_neural_net=get_data.transform_boolean_to_minus_one_and_one(data_dic['val']),
         operations_in_DCDL=settings_dic_DCDL['operations'],
         # already printed in step before
-        print_nodes_in_neural_net=False )
+        print_nodes_in_neural_net=False)
 
-    #todo implement train DCDL
-
-
-
-
-
-
-
-
+    # todo implement train DCDL
 
     with open(path_to_store_pd_results, "wb") as f:
-        pickle.dump(results, f )
+        pickle.dump(results, f)

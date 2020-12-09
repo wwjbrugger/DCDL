@@ -52,8 +52,8 @@ def get_experimental_settings():
         # name_of_model
         'name_of_model': 'two_conv_2x2_{}'.format(general_settings_dic['timestr']),
         # number_train_iteration
-        #todo set back to 2000
-        'number_train_iteration': 200,
+        #todo set back to 200
+        'number_train_iteration': 2000,
         # shape of kernel used in first convolution
         'shape_of_kernel_conv_1': (2, 2),
         # number kernel used in first_convolution
@@ -100,13 +100,13 @@ def get_experimental_settings():
         # pics have all three colour channel
         setting_dic_NN['input_channels'] = 1
 
-    settings_dic_SLS = {
+    settings_dic_SLS_black_box_label = {
         # which split of data is used for finding logical rules:
         # 'train' -> all data are in train set
         # train_val -> data are split in train and validation set
         # train_val_test -> data are split in train, validation and test set () more interesting for
         # mode should be set in experiment
-        'mode': None,
+        'mode': 'rule_extraction_with_sls_val',
         # number_of_disjunction_term_in_SLS
         'number_of_disjunction_term_in_SLS': 40,
 
@@ -170,4 +170,4 @@ def get_experimental_settings():
         # we are using arg_max to cast one_hot_label to a single label
         settings_dic_DCDL[6]['name'] = 'ArgMax'
 
-    return general_settings_dic, setting_dic_NN, settings_dic_SLS, settings_dic_DCDL
+    return general_settings_dic, setting_dic_NN, settings_dic_SLS_black_box_label, settings_dic_DCDL

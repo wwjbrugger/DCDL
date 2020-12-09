@@ -29,7 +29,7 @@ def prepare_data_for_sls(data, label):
     # load data for sls approximation
     shape = data.shape
 
-    # add colour channel to data
+    # flatten data
     data_flat = data.reshape((shape[0], - 1))
     label_flat = label[:, 0]
     # cast to True and False values

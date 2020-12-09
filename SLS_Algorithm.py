@@ -9,9 +9,16 @@ Input in SLS are values in True/False Form
 
 
 # call SLS Implementation in C
-def rule_extraction_with_sls_test (train, train_label, val, val_label, test, test_label,
-                             number_of_disjunction_term, maximum_steps_in_SLS, kernel,
-                             p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob, zero_init):
+def rule_extraction_with_sls_test(train, train_label, val, val_label, test, test_label,
+                                  number_of_disjunction_term, maximum_steps_in_SLS, kernel,
+                                  p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob, zero_init):
+    # check input dimensions
+    if np.ndim(train) != 2 or np.ndim(val) != 2 or np.ndim(test) != 2:
+        raise ValueError('Input data are not flatten. Shape of input is {}, {}, {}'.
+                         format(train.shape, val.shape, test.shape))
+    if np.ndim(train_label) != 1 or np.ndim(val_label) != 1 or np.ndim(test_label) != 1:
+        raise ValueError('Label data are not flatten. Shape of input is {}, {}, {}'.
+                         format(train_label.shape, val_label.shape, test_label.shape))
     # use SLS with a train, validation and test set
     # first_split, second_split = calculate_border_values_train_test_validation(data)
     # number of input variables is rounded up to a multiple of eight
@@ -94,14 +101,21 @@ def rule_extraction_with_sls_test (train, train_label, val, val_label, test, tes
     found_formula.train_acc = (val.shape[0] - found_formula.total_error_on_validation_set) / val.shape[0]
     return found_formula
 
-def rule_extraction_with_sls_val(train, train_label, val, val_label,
-                                          number_of_disjunction_term, maximum_steps_in_SLS,
-                                          kernel,
-                                          p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob,
-                                          zero_init
-                                          ):
-    # run sls with train and validation data
 
+def rule_extraction_with_sls_val(train, train_label, val, val_label,
+                                 number_of_disjunction_term, maximum_steps_in_SLS,
+                                 kernel,
+                                 p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob,
+                                 zero_init
+                                 ):
+    # check input dimensions
+    if np.ndim(train) != 2 or np.ndim(val) != 2:
+        raise ValueError('Input data are not flatten. Shape of input is {}, {}'.
+                         format(train.shape, val.shape))
+    if np.ndim(train_label) != 1 or np.ndim(val_label) != 1 :
+        raise ValueError('Label data are not flatten. Shape of input is {}, {}'.
+                         format(train_label.shape, val_label.shape))
+    # run sls with train and validation data
 
     # number of input variables is rounded up to a multiple of eight
     # C++ implementation stores formula in uint 8 variables
@@ -158,7 +172,8 @@ def rule_extraction_with_sls_val(train, train_label, val, val_label,
                                   on_off=on_off,  # Mask for formula
                                   pos_neg_to_store=pos_neg_to_store,  # Positive or negative for formula
                                   on_off_to_store=on_off_to_store,  # Mask for formula
-                                  vector_n=int(train.shape[0]),  # of data vectors !!!!NEEDS TO BE BIGGER THEN BATCH_SIZE!!!!
+                                  vector_n=int(train.shape[0]),
+                                  # of data vectors !!!!NEEDS TO BE BIGGER THEN BATCH_SIZE!!!!
                                   vector_n_val=int(val.shape[0]),
                                   # of data vectors !!!!NEEDS TO BE BIGGER THEN BATCH_SIZE!!!!
                                   features_n=num_of_features,  # of Features
@@ -175,13 +190,19 @@ def rule_extraction_with_sls_val(train, train_label, val, val_label,
     found_formula.train_acc = (val.shape[0] - found_formula.total_error_on_validation_set) / val.shape[0]
     return found_formula
 
-#---------------------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------------------
 
 def rule_extraction_with_sls(train, train_label,
-                                                                 number_of_disjunction_term, maximum_steps_in_SLS,
-                                                                 kernel,
-                                                                 p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob,
-                                                                 zero_init):
+                             number_of_disjunction_term, maximum_steps_in_SLS,
+                             kernel,
+                             p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob,
+                             zero_init):
+    # check input dimensions
+    if np.ndim(train) != 2 :
+        raise ValueError('Input data are not flatten. Shape of input is {}'.format(train.shape))
+    if np.ndim(train_label) != 1 :
+        raise ValueError('Label data are not flatten. Shape of input is {}'.format(train_label.shape))
     # run SLS with maximal number of training samples
 
     # number of input variables is rounded up to a multiple of eight
@@ -252,11 +273,16 @@ def rule_extraction_with_sls(train, train_label,
     return found_formula
     # return bofo.Boolean_formula(on_off_to_store, pos_neg_to_store, number_of_disjunction_term, total_error = sls_obj.total_error)
 
-#------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------
 # calc prediction of learned SLS in C
 def calc_prediction_in_C(data, label_shape, found_formula):
     # use C++ code to calculate prediction for given data with found formula
+    # test input shape
+    if np.ndim(data) != 2:
+        raise ValueError('Input data are not flatten. Shape of input is {}'.format(data.shape))
     num_anzahl_input_data = int(data.shape[0])
+
     num_of_features = found_formula.variable_pro_term
     number_of_disjunction_term = found_formula.number_of_disjunction_term_in_SLS
     data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(data)
