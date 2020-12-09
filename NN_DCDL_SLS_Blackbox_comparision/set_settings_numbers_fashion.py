@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 def get_experimental_settings():
-    #todo fit to DCDL experiment
+    # todo fit to DCDL experiment
     default_store_path = Path('/home/jbrugger/PycharmProjects/dcdl_final/NN_DCDL_SLS_Blackbox_comparision')
 
     general_settings_dic = {
@@ -14,16 +14,14 @@ def get_experimental_settings():
         'timestr': time.strftime("%Y%m%d-%H%M%S"),
         'default_store_path': default_store_path,
 
-
         # for numbers and fashion should the value be 55000
         'size_train': 55000,
-
 
         # size of validation set
         'size_valid': 5000,
 
         # shape of input pictures
-        'shape_of_input_pictures' : [28,28],
+        'shape_of_input_pictures': [28, 28],
 
         # If pictures should be dithered set values to 0 or 1 (see https://en.wikipedia.org/wiki/Dither)
         'dithering_used': True,
@@ -33,7 +31,6 @@ def get_experimental_settings():
 
         # are pixel of pictures in range [0 to 1]? other option [0 to 255]
         'pic_range_0_1': True,
-
 
         # if pictures should be converted to grey before using
 
@@ -51,48 +48,47 @@ def get_experimental_settings():
         'arg_min_label': True
     }
 
-
     setting_dic_NN = {
         # name_of_model
         'name_of_model': 'two_conv_2x2_{}'.format(general_settings_dic['timestr']),
         # number_train_iteration
-        'number_train_iteration':2000,
+        #todo set back to 2000
+        'number_train_iteration': 200,
         # shape of kernel used in first convolution
         'shape_of_kernel_conv_1': (2, 2),
         # number kernel used in first_convolution
-        'num_kernel_conv_1': 8 ,
+        'num_kernel_conv_1': 8,
         # shape of kernel used in second convolution
         'shape_of_kernel_conv_2': (2, 2),
         # number kernel used in first_convolution
-        'num_kernel_conv_2' :8,
+        'num_kernel_conv_2': 8,
         # stride use in convolution
         'stride_of_convolution_conv_1': 2,
         # stride use in convolution
         'stride_of_convolution_conv_2': 2,
         # number elements in batch
-        'batch_size': 2**10,
+        'batch_size': 2 ** 10,
         # after how many steps should acc of the the train print again
-        'print_acc_train_every' :1000,
+        'print_acc_train_every': 1000,
         # after how many steps should the NN be validated
         # net with highest validation score will be used at the end.
-        'check_every' :25,
+        'check_every': 25,
         # use bias in convolution 1
-        'use_bias_in_conv_1' : False,
+        'use_bias_in_conv_1': False,
         # use bias in convolution 1
-        'use_bias_in_conv_2' : False,
+        'use_bias_in_conv_2': False,
         # activation after conv 1 is only 'binarize_STE' and 'relu'
-        'activation_str' : 'binarize_STE',
+        'activation_str': 'binarize_STE',
         # shape_max_pooling_layer which parts of the input should be pooled
-        'shape_max_pooling_layer': [1,2,2,1],
+        'shape_max_pooling_layer': [1, 2, 2, 1],
         # stride of max pooling layer
         'stride_max_pooling': 2,
         # learning rate net
-        'learning_rate':1E-3,
+        'learning_rate': 1E-3,
         # dropout rate
         'dropout_rate': 0.4,
         # use logging mode while training the net
-        'logging':True,
-
+        'logging': True,
 
     }
     # input channel for numbers and fashion is always 1
@@ -110,7 +106,7 @@ def get_experimental_settings():
         # train_val -> data are split in train and validation set
         # train_val_test -> data are split in train, validation and test set () more interesting for
         # mode should be set in experiment
-        'mode': None ,
+        'mode': None,
         # number_of_disjunction_term_in_SLS
         'number_of_disjunction_term_in_SLS': 40,
 
@@ -140,16 +136,38 @@ def get_experimental_settings():
         'init_with_kernel': False,
 
         # use batch in SLS
-        'batch' : True,
+        'batch': True,
 
         # if no more improvement found for 600 steps restart SLS with new random formula
-        'cold_restart' : True,
+        'cold_restart': True,
 
         # Decay factor, with which p_g1 and p_s can be reduces after train step be zero.
         # Up to min_prob
-        'decay' : 0,
+        'decay': 0,
         'min_prob': 0,
         # initialize SLS with empty formula instead of random
-        'zero_init' : False,
+        'zero_init': False,
     }
-    return general_settings_dic, setting_dic_NN, settings_dic_SLS
+    settings_dic_DCDL = {
+        # define which operations the neural net should approximate
+        'operations': {
+            # name = name of operation n neural net
+            0: {'name': 'dcdl_conv_1/conv2d/Sign'},
+            2: {'name': 'MaxPool'},
+            4: {'name': 'dcdl_conv_2/conv2d/Sign'},
+            6: {'name': 'prediction_neural_net_set_below'}
+        },
+
+        # if all all nodes in neural net should be print helpful for debugging
+        # for a better overview use tensorboard
+        'print_nodes_in_neural_net': True,
+    }
+
+    if general_settings_dic['arg_min_label']:
+        # we are using arg_min to cast one_hot_label to a single label
+        settings_dic_DCDL['operations'][6]['name'] = 'ArgMin'
+    else:
+        # we are using arg_max to cast one_hot_label to a single label
+        settings_dic_DCDL[6]['name'] = 'ArgMax'
+
+    return general_settings_dic, setting_dic_NN, settings_dic_SLS, settings_dic_DCDL

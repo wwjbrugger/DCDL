@@ -13,10 +13,13 @@ import pickle as pickle
 import pandas as pd
 import get_data as get_data
 
+import extract_data_from_neural_net as extract_data_from_neural_net
+
 import set_settings_cifar as settings_cifar
 import set_settings_numbers_fashion as settings_number_fashion
 
 import NN_DCDL_SLS_Blackbox_comparision.Neural_net_model.NN_model as NN_model
+
 
 if __name__ == '__main__':
 
@@ -31,12 +34,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # -------------------------- get dictionaries with settings and store them ---------------
     if args.dataset in ('numbers' or 'fashion'):
-        general_settings_dic, setting_dic_NN, settings_dic_SLS = \
+        general_settings_dic, setting_dic_NN,\
+        settings_dic_SLS, settings_dic_DCDL = \
             settings_number_fashion.get_experimental_settings()
 
 
     elif args.dataset in 'cifar':
-        general_settings_dic, setting_dic_NN, settings_dic_SLS = \
+        general_settings_dic, setting_dic_NN,\
+        settings_dic_SLS, settings_dic_DCDL = \
             settings_cifar.get_experimental_settings()
     else:
         raise ValueError('chosen dataset [{}] is not supported '
@@ -107,6 +112,9 @@ if __name__ == '__main__':
         values_max_1=general_settings_dic['pic_range_0_1'],
         visualize_data=general_settings_dic['visualize_data'])
 
+    #---------------------------------------train SLS Blackbox with Label -----------------------------------
+
+
     # --------------------------------------train neural net-------------------------------------------------
     neural_net = NN_model.network_two_convolution(
         path_to_store_model=setting_dic_NN['save_path_model'],
@@ -162,3 +170,30 @@ if __name__ == '__main__':
 
     print('results after training neural net \n',
           tabulate(results.round(2), headers='keys', tablefmt='psql'))
+
+    # ------------------------------------- train DCDL -----------------------------------------
+    DCDL_data_dic = extract_data_from_neural_net.extract_data(
+        neural_net=neural_net,
+        input_neural_net = get_data.transform_boolean_to_minus_one_and_one(data_dic['train']),
+        operations_in_DCDL = settings_dic_DCDL['operations'],
+        print_nodes_in_neural_net = settings_dic_DCDL['print_nodes_in_neural_net'])
+
+    DCDL_val_dic = extract_data_from_neural_net.extract_data(
+        neural_net=neural_net,
+        input_neural_net=get_data.transform_boolean_to_minus_one_and_one(data_dic['val']),
+        operations_in_DCDL=settings_dic_DCDL['operations'],
+        # already printed in step before
+        print_nodes_in_neural_net=False )
+
+    #todo implement train DCDL
+
+
+
+
+
+
+
+
+
+    with open(path_to_store_pd_results, "wb") as f:
+        pickle.dump(results, f )
