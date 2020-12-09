@@ -29,7 +29,7 @@ def get_experimental_settings():
         'dithering_used': True,
 
         # length of one-hot-encoded label e.g.[0,1], after one_against_all
-        'number_classes_to_predict': 2,
+        'number_classes': 2,
 
         # are pixel of pictures in range [0 to 1]? other option [0 to 255]
         'pic_range_0_1': True,
@@ -49,7 +49,7 @@ def get_experimental_settings():
         # e.g. arg_max([0, 1]) = 1
         'arg_min_label': True
     }
-
+#todo update values as in
     setting_dic_NN = {
         #name_of_model
         'name_of_model' : 'two_conv_2x2_{}'.format(general_settings_dic['timestr']),
@@ -61,6 +61,12 @@ def get_experimental_settings():
         'stride_of_convolution': 2,
 
     }
+    if general_settings_dic['convert_to_grey']:
+        # pic are cast to grey scale pic
+        setting_dic_NN['input_channels'] = 1
+    else:
+        # pics have all three colour channel
+        setting_dic_NN['input_channels'] = 3
 
     settings_dic_SLS = {
         # which split of data is used for finding logical rules:

@@ -2,6 +2,7 @@
 # start script with python start.py []
 import os
 import argparse
+from tabulate import tabulate
 
 os.environ["BLD_PATH"] = "../parallel_sls/bld/Parallel_SLS_shared"
 
@@ -14,6 +15,8 @@ import get_data as get_data
 
 import set_settings_cifar as settings_cifar
 import set_settings_numbers_fashion as settings_number_fashion
+
+import NN_DCDL_SLS_Blackbox_comparision.Neural_net_model.NN_model as NN_model
 
 if __name__ == '__main__':
 
@@ -29,12 +32,12 @@ if __name__ == '__main__':
     # -------------------------- get dictionaries with settings and store them ---------------
     if args.dataset in ('numbers' or 'fashion'):
         general_settings_dic, setting_dic_NN, settings_dic_SLS = \
-            settings_cifar.get_experimental_settings()
+            settings_number_fashion.get_experimental_settings()
 
 
     elif args.dataset in 'cifar':
         general_settings_dic, setting_dic_NN, settings_dic_SLS = \
-            settings_number_fashion.get_experimental_settings()
+            settings_cifar.get_experimental_settings()
     else:
         raise ValueError('chosen dataset [{}] is not supported '
                          'use start.py [-h] to get a list of supported datasets'.format(args.dataset))
@@ -58,6 +61,17 @@ if __name__ == '__main__':
                      'setting_dic_NN': setting_dic_NN,
                      'settings_dic_SLS': settings_dic_SLS},
                     f)
+
+    # --------------------where to store neural network model-----------------------------------
+    path_to_store_model_parent_folder = \
+        general_settings_dic['default_store_path'] / 'neural_net_saved_model' \
+        / str(general_settings_dic['one_against_all']) / general_settings_dic['timestr']
+
+    path_to_store_model_parent_folder.mkdir(parents=True, exist_ok=True)
+    path_to_store_model = path_to_store_model_parent_folder / setting_dic_NN['name_of_model']
+    # path to store the model of the neural net
+    setting_dic_NN['save_path_model'] = str(path_to_store_model)
+    setting_dic_NN['save_path_logs'] = str(path_to_store_model_parent_folder)
 
     # --------------------create empty results frames and where to store them----------------------------------
     path_to_store_pd_results = \
@@ -87,11 +101,64 @@ if __name__ == '__main__':
         dithering_used=general_settings_dic['dithering_used'],
         one_against_all=general_settings_dic['one_against_all'],
         number_class_to_predict=general_settings_dic[
-            'number_classes_to_predict'],
+            'number_classes'],
         data_set_to_use=general_settings_dic['data_set_to_use'],
         convert_to_grey=general_settings_dic['convert_to_grey'],
         values_max_1=general_settings_dic['pic_range_0_1'],
-        visualize_data = general_settings_dic['visualize_data'])
+        visualize_data=general_settings_dic['visualize_data'])
 
-    train_neurel_net
+    # --------------------------------------train neural net-------------------------------------------------
+    neural_net = NN_model.network_two_convolution(
+        path_to_store_model=setting_dic_NN['save_path_model'],
+        name_of_model=setting_dic_NN['name_of_model'],
+        learning_rate=setting_dic_NN['learning_rate'],
+        # length of one-hot-encoded label e.g.[0,1], after one_against_all
+        number_classes=general_settings_dic['number_classes'],
+        input_shape=general_settings_dic['shape_of_input_pictures'],
+        nr_training_iteration=setting_dic_NN['number_train_iteration'],
+        batch_size=setting_dic_NN['batch_size'],
+        print_every=setting_dic_NN['print_acc_train_every'],
+        check_every=setting_dic_NN['check_every'],
+        number_of_kernel_conv_1=setting_dic_NN['num_kernel_conv_1'],
+        number_of_kernel_conv_2=setting_dic_NN['num_kernel_conv_2'],
+        shape_of_kernel_conv_1=setting_dic_NN['shape_of_kernel_conv_1'],
+        shape_of_kernel_conv_2=setting_dic_NN['shape_of_kernel_conv_2'],
+        stride_conv_1=setting_dic_NN['stride_of_convolution_conv_1'],
+        stride_conv_2=setting_dic_NN['stride_of_convolution_conv_2'],
+        input_channels=setting_dic_NN['input_channels'],
+        # activation is a sign function sign(x) = -1 if x <= 0, 1 if x > 0.
+        activation_str=setting_dic_NN['activation_str'],
+        use_bias_in_conv_1=setting_dic_NN['use_bias_in_conv_1'],
+        use_bias_in_conv_2=setting_dic_NN['use_bias_in_conv_2'],
+        shape_max_pooling_layer=setting_dic_NN['shape_max_pooling_layer'],
+        stride_max_pooling=setting_dic_NN['stride_max_pooling'],
+        dropout_rate=setting_dic_NN['dropout_rate'],
+        # use arg_min function to cast one hot label to true or false
+        arg_min_label=general_settings_dic['arg_min_label'],
+        loging=setting_dic_NN['loging'],
+        save_path_logs=setting_dic_NN['save_path_logs'])
 
+    neural_net.training(train=data_dic['train'],
+                        label_train=data_dic['label_train'],
+                        val=data_dic['val'],
+                        label_val=data_dic['label_val'],
+                        loging=setting_dic_NN['loging'])
+    # --------------------------------------evaluate_neural_net-------------------------------------------------
+
+    # save accuracy on the NN on train set in results
+    results.at['Training set', 'Neural network'] = \
+        neural_net.evaluate(input=data_dic['train'],
+                            label=data_dic['label_train'])
+
+    # should be the same value as the highest during training
+    results.at['Validation set', 'Neural network'] = \
+        neural_net.evaluate(input=data_dic['val'],
+                            label=data_dic['label_val'])
+
+    # save accuracy of the NN on test set in results
+    results.at['Test set', 'Neural network'] = \
+        neural_net.evaluate(input=data_dic['test'],
+                            label=data_dic['label_test'])
+
+    print('results after training neural net \n',
+          tabulate(results.round(2), headers='keys', tablefmt='psql'))

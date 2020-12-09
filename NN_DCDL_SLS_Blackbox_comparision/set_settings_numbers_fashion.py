@@ -1,6 +1,7 @@
 import time
 from pathlib import Path
 
+
 def get_experimental_settings():
     #todo fit to DCDL experiment
     default_store_path = Path('/home/jbrugger/PycharmProjects/dcdl_final/NN_DCDL_SLS_Blackbox_comparision')
@@ -28,13 +29,14 @@ def get_experimental_settings():
         'dithering_used': True,
 
         # length of one-hot-encoded label e.g.[0,1], after one_against_all
-        'number_classes_to_predict': 2,
+        'number_classes': 2,
 
         # are pixel of pictures in range [0 to 1]? other option [0 to 255]
         'pic_range_0_1': True,
 
 
         # if pictures should be converted to grey before using
+
         'convert_to_grey': False,
 
         # for visualization of kernel and formula set vmin = -1 and vmax =1
@@ -49,15 +51,58 @@ def get_experimental_settings():
         'arg_min_label': True
     }
 
+
     setting_dic_NN = {
+        # name_of_model
+        'name_of_model': 'two_conv_2x2_{}'.format(general_settings_dic['timestr']),
+        # number_train_iteration
+        'number_train_iteration':2000,
         # shape of kernel used in first convolution
         'shape_of_kernel_conv_1': (2, 2),
+        # number kernel used in first_convolution
+        'num_kernel_conv_1': 8 ,
         # shape of kernel used in second convolution
         'shape_of_kernel_conv_2': (2, 2),
+        # number kernel used in first_convolution
+        'num_kernel_conv_2' :8,
         # stride use in convolution
-        'stride_of_convolution': 2,
+        'stride_of_convolution_conv_1': 2,
+        # stride use in convolution
+        'stride_of_convolution_conv_2': 2,
+        # number elements in batch
+        'batch_size': 2**10,
+        # after how many steps should acc of the the train print again
+        'print_acc_train_every' :1000,
+        # after how many steps should the NN be validated
+        # net with highest validation score will be used at the end.
+        'check_every' :25,
+        # use bias in convolution 1
+        'use_bias_in_conv_1' : False,
+        # use bias in convolution 1
+        'use_bias_in_conv_2' : False,
+        # activation after conv 1 is only 'binarize_STE' and 'relu'
+        'activation_str' : 'binarize_STE',
+        # shape_max_pooling_layer which parts of the input should be pooled
+        'shape_max_pooling_layer': [1,2,2,1],
+        # stride of max pooling layer
+        'stride_max_pooling': 2,
+        # learning rate net
+        'learning_rate':1E-3,
+        # dropout rate
+        'dropout_rate': 0.4,
+        # use logging mode while training the net
+        'loging':True,
+
 
     }
+    # input channel for numbers and fashion is always 1
+    # code is for consistency with  cifar set_settings
+    if general_settings_dic['convert_to_grey']:
+        # pic are cast to grey scale pic
+        setting_dic_NN['input_channels'] = 1
+    else:
+        # pics have all three colour channel
+        setting_dic_NN['input_channels'] = 1
 
     settings_dic_SLS = {
         # which split of data is used for finding logical rules:
