@@ -65,6 +65,7 @@ class Convolution:
         train, label_all_channel = self.preprocess(data=train_data,
                                                    label=train_label)
         for channel in range(self.properties['num_kernel']):
+            print('channel: {}'.format(channel))
             label_one_channel = label_all_channel[:, :, :, channel].flatten()
             if self.properties['SLS_dic']['mode'] in 'rule_extraction_with_sls':
                 found_formula = SLS.rule_extraction_with_sls(

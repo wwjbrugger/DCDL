@@ -35,7 +35,7 @@ if __name__ == '__main__':
                         type=int)
     args = parser.parse_args()
     # -------------------------- get dictionaries with settings and store them ---------------
-    if args.dataset in ('numbers' or 'fashion'):
+    if args.dataset in 'numbers' or args.dataset in 'fashion':
         general_settings_dic, setting_dic_NN, \
         settings_dic_SLS_black_box_label, settings_dic_DCDL, \
         settings_dic_SLS_black_box_prediction    = \

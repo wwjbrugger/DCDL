@@ -3,16 +3,22 @@ from pathlib import Path
 
 
 def get_experimental_settings():
-    default_store_path = Path('/home/jbrugger/PycharmProjects/dcdl_final/NN_DCDL_SLS_Blackbox_comparision')
+    # where to store settings and results
+    # For the current working directory
+    default_store_path =  Path().absolute()
+    # name of the experiment
     setup_name = 'garbage'
 
     general_settings_dic = {
         # set seed None if you don't want to set an explicit seed
         # seed is not working at the moment
-        # Attention at the moment we can't set the seed for the SLS Algorithm
+        # attention at the moment we can't set the seed for the SLS Algorithm
         'seed': None,
+        # timestamp to make the results unique
         'timestr': time.strftime("%Y%m%d-%H%M%S"),
+        # where to store settings and results
         'default_store_path': default_store_path,
+        # name of the experiment
         'setup_name': setup_name,
 
         # for numbers and fashion should the value be 55000
@@ -46,14 +52,13 @@ def get_experimental_settings():
         # how to convert [x,y] to one number switch meaning of label
         # e.g. arg_min([0,1]) = 0
         # e.g. arg_max([0, 1]) = 1
-        #todo change backto True
-        'arg_min_label': False
+        'arg_min_label': True
     }
 
     setting_dic_NN = {
         # name_of_model
         'name_of_model': 'two_conv_2x2_{}'.format(general_settings_dic['timestr']),
-        # number_train_iteration
+        # number_train_iteration neural net
         'number_train_iteration': 2000,
         # shape of kernel used in first convolution
         'shape_of_kernel_conv_1': (2, 2),
@@ -94,7 +99,7 @@ def get_experimental_settings():
     }
 
     # input channel for numbers and fashion is always 1
-    # code is for consistency with  cifar set_settings
+    # code is for consistency with cifar_set_settings
     if general_settings_dic['convert_to_grey']:
         # pic are cast to grey scale pic
         setting_dic_NN['input_channels'] = 1
@@ -143,11 +148,20 @@ def get_experimental_settings():
         # Up to min_prob
         'decay': 0,
         'min_prob': 0,
+
         # initialize SLS with empty formula instead of random
         'zero_init': False,
     }
 
     settings_dic_DCDL = {
+        # if all all nodes in neural net should be print helpful for debugging
+        # for a better overview use tensorboard
+        'print_nodes_in_neural_net': False,
+
+        # if to use the prediction of the operation before
+        # if false data from neural net are used
+        'use_prediction_operation_before': True,
+
         # define which operations the neural net should approximate
         'operations': {
             # name = name of operation n neural net
@@ -157,8 +171,12 @@ def get_experimental_settings():
                     'stride': setting_dic_NN['stride_of_convolution_conv_1'],
                     'kernel': setting_dic_NN['shape_of_kernel_conv_1'],
                     'num_kernel': setting_dic_NN['num_kernel_conv_1'],
-                    'SLS_dic': {  # mode should be set in experiment
+                    'SLS_dic': {
+                        # mode to run SLS algorithm
+                        # rule_extraction_with_sls uses only train set
+                        # rule_extraction_with_sls_val uses train set and test set
                         'mode': 'rule_extraction_with_sls_val',
+
                         # number_of_disjunction_term_in_SLS
                         'number_of_disjunction_term_in_SLS': 40,
 
@@ -197,12 +215,14 @@ def get_experimental_settings():
                         # Up to min_prob
                         'decay': 0,
                         'min_prob': 0,
+
                         # initialize SLS with empty formula instead of random
                         'zero_init': False, }
                 }},
             2: {'name': 'MaxPool',
                 'kind': 'max_pool',
                 'properties': {
+                    # which blocks should be reduced
                     'block_size': (1, 2, 2, 1)
                 }},
             4: {'name': 'dcdl_conv_2/conv2d/Sign',
@@ -251,12 +271,15 @@ def get_experimental_settings():
                         # Up to min_prob
                         'decay': 0,
                         'min_prob': 0,
+
                         # initialize SLS with empty formula instead of random
                         'zero_init': False,
                     }}
                 },
-
-            6: {'name': 'prediction_neural_net_set_below',
+            # approximation last layer
+            # name is set bellow dependent on if arg_min or arg_max is used for
+            # mapping one-hot-label to single label
+            6: {'name':  None,
                 'kind': 'dense',
                 'properties': {
                     'SLS_dic': {  # mode should be set in experiment
@@ -299,17 +322,13 @@ def get_experimental_settings():
                         # Up to min_prob
                         'decay': 0,
                         'min_prob': 0,
+
                         # initialize SLS with empty formula instead of random
                         'zero_init': False,
                     }
                 }}
         },
-        # if all all nodes in neural net should be print helpful for debugging
-        # for a better overview use tensorboard
-        'print_nodes_in_neural_net': True,
-        # if to use the prediction of the operation before
-        # if false data from neural net are used
-        'use_prediction_operation_before': True
+
     }
 
     if general_settings_dic['arg_min_label']:

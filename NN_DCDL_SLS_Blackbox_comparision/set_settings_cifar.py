@@ -4,16 +4,19 @@ from pathlib import Path
 def get_experimental_settings():
     #todo fit to DCDL experiment
     default_store_path = Path('/home/jbrugger/PycharmProjects/dcdl_final/NN_DCDL_SLS_Blackbox_comparision')
+    setup_name = 'garbage'
 
     general_settings_dic = {
         # set seed None if you don't want to set an explicit seed
         # seed is not working at the moment
         # Attention at the moment we can't set the seed for the SLS Algorithm
         'seed': None,
+        # Timestamp to make the results unique
         'timestr': time.strftime("%Y%m%d-%H%M%S"),
+        # where to store settings and results
         'default_store_path': default_store_path,
-        # 'numbers' or 'fashion'
-        'data_set_to_use': 'cifar',
+
+        'setup_name': setup_name,
 
         # for numbers and fashion should the value be 45000
         'size_train': 45000,
