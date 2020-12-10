@@ -8,7 +8,7 @@ os.environ["BLD_PATH"] = "../parallel_sls/bld/Parallel_SLS_shared"
 
 import numpy as np
 import tensorflow as tf
-import SLS_Algorithm as SLS
+
 import pickle as pickle
 import pandas as pd
 import get_data as get_data
@@ -20,6 +20,7 @@ import set_settings_numbers_fashion as settings_number_fashion
 
 import NN_DCDL_SLS_Blackbox_comparision.Neural_net_model.NN_model as NN_model
 import NN_DCDL_SLS_Blackbox_comparision.SLS_black_box_model.SLS_black_box as SLS_black_box_model
+import NN_DCDL_SLS_Blackbox_comparision.DCDL_Model.DCDL as DCDL
 
 if __name__ == '__main__':
 
@@ -113,44 +114,6 @@ if __name__ == '__main__':
         values_max_1=general_settings_dic['pic_range_0_1'],
         visualize_data=general_settings_dic['visualize_data'])
 
-    # ---------------------------------------train and evaluate SLS Blackbox with Label -----------------------------------
-    SLS_black_box_label = SLS_black_box_model.SLS_black_box(mode = settings_dic_SLS_black_box_label['mode'],
-                                              arg_min_label = general_settings_dic['arg_min_label'],
-                                              number_of_disjunction_term=settings_dic_SLS_black_box_label[
-                                                  'number_of_disjunction_term_in_SLS'],
-                                              maximum_steps_in_SLS=settings_dic_SLS_black_box_label['maximum_steps_in_SLS'],
-                                              init_with_kernel=settings_dic_SLS_black_box_label['init_with_kernel'],
-                                              p_g1=settings_dic_SLS_black_box_label['p_g1'],
-                                              p_g2=settings_dic_SLS_black_box_label['p_g2'],
-                                              p_s=settings_dic_SLS_black_box_label['p_s'],
-                                              batch=settings_dic_SLS_black_box_label['batch'],
-                                              cold_restart=settings_dic_SLS_black_box_label['cold_restart'],
-                                              decay=settings_dic_SLS_black_box_label['decay'],
-                                              min_prob=settings_dic_SLS_black_box_label['min_prob'],
-                                              zero_init=settings_dic_SLS_black_box_label['zero_init']
-                                             )
-    SLS_black_box_label.train(train_data = data_dic['train'],
-                              train_label= data_dic['label_train'],
-                              validation_data=data_dic['val'],
-                              validation_label=data_dic['label_val'])
-
-    # save accuracy of the SLS_black_box_label on train set in results
-    results.at['Training set', 'SLS BB label'] = \
-        SLS_black_box_label.prediction(data=data_dic['train'],
-                                       original_label=data_dic['label_train'])
-
-    # save accuracy of the SLS_black_box_label on val set in results
-    results.at['Validation set', 'SLS BB label'] = \
-        SLS_black_box_label.prediction(data=data_dic['val'],
-                                       original_label=data_dic['label_val'])
-
-    # save accuracy of the NN on test set in results
-    results.at['Test set', 'SLS BB label'] = \
-        SLS_black_box_label.prediction(data=data_dic['test'],
-                            original_label=data_dic['label_test'])
-
-    print('results after training SLS black box label \n',
-          tabulate(results.round(2), headers='keys', tablefmt='psql'))
 
     # --------------------------------------train neural net-------------------------------------------------
     neural_net = NN_model.network_two_convolution(
@@ -222,7 +185,77 @@ if __name__ == '__main__':
         # already printed in step before
         print_nodes_in_neural_net=False)
 
-    # todo implement train DCDL
+    DCDL_objc = DCDL.DCDL(operations=settings_dic_DCDL['operations'],
+                          arg_min_label=general_settings_dic['arg_min_label'])
+
+    DCDL_objc.train(train_data=data_dic['train'],
+                    validation_data=data_dic['val'],
+                    use_prediction_operation_before=settings_dic_DCDL['use_prediction_operation_before'],
+                    DCDL_data_dic=DCDL_data_dic,
+                    DCDL_val_dic=DCDL_val_dic)
+
+    # --------------------------------------evaluate DCDL - ------------------------------------------------
+    results.at['Training set', 'DCDL'] = \
+        DCDL_objc.prediction(data=data_dic['train'],
+                             original_label=data_dic['label_train'])
+
+    results.at['Validation set', 'DCDL'] = \
+        DCDL_objc.prediction(data=data_dic['val'],
+                             original_label=data_dic['label_val'])
+
+    results.at['Test set', 'DCDL'] = \
+        DCDL_objc.prediction(data=data_dic['test'],
+                             original_label=data_dic['label_test'])
+
+    print('results after training DCDL \n',
+          tabulate(results.round(2), headers='keys', tablefmt='psql'))
+
+
+    # ---------------------------------------train and evaluate SLS Blackbox with Label -----------------------------------
+    SLS_black_box_label = SLS_black_box_model.SLS_black_box(mode=settings_dic_SLS_black_box_label['mode'],
+                                                            arg_min_label=general_settings_dic['arg_min_label'],
+                                                            number_of_disjunction_term=settings_dic_SLS_black_box_label[
+                                                                'number_of_disjunction_term_in_SLS'],
+                                                            maximum_steps_in_SLS=settings_dic_SLS_black_box_label[
+                                                                'maximum_steps_in_SLS'],
+                                                            init_with_kernel=settings_dic_SLS_black_box_label[
+                                                                'init_with_kernel'],
+                                                            p_g1=settings_dic_SLS_black_box_label['p_g1'],
+                                                            p_g2=settings_dic_SLS_black_box_label['p_g2'],
+                                                            p_s=settings_dic_SLS_black_box_label['p_s'],
+                                                            batch=settings_dic_SLS_black_box_label['batch'],
+                                                            cold_restart=settings_dic_SLS_black_box_label[
+                                                                'cold_restart'],
+                                                            decay=settings_dic_SLS_black_box_label['decay'],
+                                                            min_prob=settings_dic_SLS_black_box_label['min_prob'],
+                                                            zero_init=settings_dic_SLS_black_box_label['zero_init']
+                                                            )
+    SLS_black_box_label.train(train_data=data_dic['train'],
+                              train_label=data_dic['label_train'],
+                              validation_data=data_dic['val'],
+                              validation_label=data_dic['label_val'])
+
+    # save accuracy of the SLS_black_box_label on train set in results
+    results.at['Training set', 'SLS BB label'] = \
+        SLS_black_box_label.prediction(data=data_dic['train'],
+                                       original_label=data_dic['label_train'])
+
+    # save accuracy of the SLS_black_box_label on val set in results
+    results.at['Validation set', 'SLS BB label'] = \
+        SLS_black_box_label.prediction(data=data_dic['val'],
+                                       original_label=data_dic['label_val'])
+
+    # save accuracy of the NN on test set in results
+    results.at['Test set', 'SLS BB label'] = \
+        SLS_black_box_label.prediction(data=data_dic['test'],
+                                       original_label=data_dic['label_test'])
+
+    print('results after training SLS black box label \n',
+          tabulate(results.round(2), headers='keys', tablefmt='psql'))
+
+
+
+
 
     with open(path_to_store_pd_results, "wb") as f:
         pickle.dump(results, f)
