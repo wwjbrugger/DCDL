@@ -40,7 +40,6 @@ def get_experimental_settings():
         'pic_range_0_1': True,
 
         # if pictures should be converted to grey before using
-
         'convert_to_grey': False,
 
         # for visualization of kernel and formula set vmin = -1 and vmax =1

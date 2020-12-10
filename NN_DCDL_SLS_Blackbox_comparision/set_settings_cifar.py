@@ -16,11 +16,11 @@ def get_experimental_settings():
         # where to store settings and results
         'default_store_path': default_store_path,
 
+        # name of the experiment
         'setup_name': setup_name,
 
         # for numbers and fashion should the value be 45000
         'size_train': 45000,
-
 
         # size of validation set
         'size_valid': 5000,
@@ -102,13 +102,9 @@ def get_experimental_settings():
         # pics have all three colour channel
         setting_dic_NN['input_channels'] = 3
 
-    settings_dic_SLS = {
-        # which split of data is used for finding logical rules:
-        # 'train' -> all data are in train set
-        # train_val -> data are split in train and validation set
-        # train_val_test -> data are split in train, validation and test set () more interesting for
+    settings_dic_SLS_black_box_label = {
         # mode should be set in experiment
-        'mode': None ,
+        'mode': 'rule_extraction_with_sls_val',
         # number_of_disjunction_term_in_SLS
         'number_of_disjunction_term_in_SLS': 40,
 
@@ -138,16 +134,251 @@ def get_experimental_settings():
         'init_with_kernel': False,
 
         # use batch in SLS
-        'batch' : True,
+        'batch': True,
 
         # if no more improvement found for 600 steps restart SLS with new random formula
-        'cold_restart' : True,
+        'cold_restart': True,
 
         # Decay factor, with which p_g1 and p_s can be reduces after train step be zero.
         # Up to min_prob
-        'decay' : 0,
+        'decay': 0,
+        'min_prob': 0,
+
+        # initialize SLS with empty formula instead of random
+        'zero_init': False,
+    }
+    settings_dic_DCDL = {
+        # if all all nodes in neural net should be print helpful for debugging
+        # for a better overview use tensorboard
+        'print_nodes_in_neural_net': False,
+
+        # if to use the prediction of the operation before
+        # if false data from neural net are used
+        'use_prediction_operation_before': True,
+
+        # define which operations the neural net should approximate
+        'operations': {
+            # name = name of operation n neural net
+            0: {'name': 'dcdl_conv_1/conv2d/Sign',
+                'kind': 'convolution',
+                'properties': {
+                    'stride': setting_dic_NN['stride_of_convolution_conv_1'],
+                    'kernel': setting_dic_NN['shape_of_kernel_conv_1'],
+                    'num_kernel': setting_dic_NN['num_kernel_conv_1'],
+                    'SLS_dic': {
+                        # mode to run SLS algorithm
+                        # rule_extraction_with_sls uses only train set
+                        # rule_extraction_with_sls_val uses train set and test set
+                        'mode': 'rule_extraction_with_sls_val',
+
+                        # number_of_disjunction_term_in_SLS
+                        'number_of_disjunction_term_in_SLS': 40,
+
+                        'maximum_steps_in_SLS': 2000,
+
+                        # Probability in SLS to choose a term uniformly drown from formula
+                        # if missed_instance has positive label
+                        # otherwise the SLS search for the formula
+                        # which differs in the smallest number of literals from missed_instance
+                        'p_g1': .5,
+
+                        # Probability in SLS to choose a literal uniformly drown from term
+                        # if missed_instance has positive label.
+                        # this literal will be removed from term
+                        # otherwise the SLS removes all literals in term that differ from missed_instance
+                        'p_g2': .5,
+
+                        # Probability in SLS to choose a literal uniformly drown from formula
+                        # if missed_instance has negative label
+                        # otherwise uniformly pick 1024 many training instances
+                        # search for literal whose addition to terms reduces score(batch) the most
+                        # This instance will be added to term, which covers missed_instance before
+                        'p_s': .5,
+
+                        # if starts weights of the should be similar to kernel
+                        # if you want this you have to specify the kernel the weights should be similar to
+                        'init_with_kernel': False,
+
+                        # use batch in SLS
+                        'batch': True,
+
+                        # if no more improvement found for 600 steps restart SLS with new random formula
+                        'cold_restart': True,
+
+                        # Decay factor, with which p_g1 and p_s can be reduces after train step be zero.
+                        # Up to min_prob
+                        'decay': 0,
+                        'min_prob': 0,
+
+                        # initialize SLS with empty formula instead of random
+                        'zero_init': False, }
+                }},
+            2: {'name': 'MaxPool',
+                'kind': 'max_pool',
+                'properties': {
+                    # which blocks should be reduced
+                    'block_size': (1, 2, 2, 1)
+                }},
+            4: {'name': 'dcdl_conv_2/conv2d/Sign',
+                'kind': 'convolution',
+                'properties': {
+                    'stride': setting_dic_NN['stride_of_convolution_conv_2'],
+                    'kernel': setting_dic_NN['shape_of_kernel_conv_2'],
+                    'num_kernel': setting_dic_NN['num_kernel_conv_2'],
+                    'SLS_dic': {  # mode should be set in experiment
+                        'mode': 'rule_extraction_with_sls_val',
+                        # number_of_disjunction_term_in_SLS
+                        'number_of_disjunction_term_in_SLS': 40,
+
+                        'maximum_steps_in_SLS': 2000,
+
+                        # Probability in SLS to choose a term uniformly drown from formula
+                        # if missed_instance has positive label
+                        # otherwise the SLS search for the formula
+                        # which differs in the smallest number of literals from missed_instance
+                        'p_g1': .5,
+
+                        # Probability in SLS to choose a literal uniformly drown from term
+                        # if missed_instance has positive label.
+                        # this literal will be removed from term
+                        # otherwise the SLS removes all literals in term that differ from missed_instance
+                        'p_g2': .5,
+
+                        # Probability in SLS to choose a literal uniformly drown from formula
+                        # if missed_instance has negative label
+                        # otherwise uniformly pick 1024 many training instances
+                        # search for literal whose addition to terms reduces score(batch) the most
+                        # This instance will be added to term, which covers missed_instance before
+                        'p_s': .5,
+
+                        # if starts weights of the should be similar to kernel
+                        # if you want this you have to specify the kernel the weights should be similar to
+                        'init_with_kernel': False,
+
+                        # use batch in SLS
+                        'batch': True,
+
+                        # if no more improvement found for 600 steps restart SLS with new random formula
+                        'cold_restart': True,
+
+                        # Decay factor, with which p_g1 and p_s can be reduces after train step be zero.
+                        # Up to min_prob
+                        'decay': 0,
+                        'min_prob': 0,
+
+                        # initialize SLS with empty formula instead of random
+                        'zero_init': False,
+                    }}
+                },
+            # approximation last layer
+            # name is set bellow dependent on if arg_min or arg_max is used for
+            # mapping one-hot-label to single label
+            6: {'name': None,
+                'kind': 'dense',
+                'properties': {
+                    'SLS_dic': {  # mode should be set in experiment
+                        'mode': 'rule_extraction_with_sls_val',
+                        # number_of_disjunction_term_in_SLS
+                        'number_of_disjunction_term_in_SLS': 40,
+
+                        'maximum_steps_in_SLS': 2000,
+
+                        # Probability in SLS to choose a term uniformly drown from formula
+                        # if missed_instance has positive label
+                        # otherwise the SLS search for the formula
+                        # which differs in the smallest number of literals from missed_instance
+                        'p_g1': .5,
+
+                        # Probability in SLS to choose a literal uniformly drown from term
+                        # if missed_instance has positive label.
+                        # this literal will be removed from term
+                        # otherwise the SLS removes all literals in term that differ from missed_instance
+                        'p_g2': .5,
+
+                        # Probability in SLS to choose a literal uniformly drown from formula
+                        # if missed_instance has negative label
+                        # otherwise uniformly pick 1024 many training instances
+                        # search for literal whose addition to terms reduces score(batch) the most
+                        # This instance will be added to term, which covers missed_instance before
+                        'p_s': .5,
+
+                        # if starts weights of the should be similar to kernel
+                        # if you want this you have to specify the kernel the weights should be similar to
+                        'init_with_kernel': False,
+
+                        # use batch in SLS
+                        'batch': True,
+
+                        # if no more improvement found for 600 steps restart SLS with new random formula
+                        'cold_restart': True,
+
+                        # Decay factor, with which p_g1 and p_s can be reduces after train step be zero.
+                        # Up to min_prob
+                        'decay': 0,
+                        'min_prob': 0,
+
+                        # initialize SLS with empty formula instead of random
+                        'zero_init': False,
+                    }
+                }}
+        },
+
+    }
+
+    if general_settings_dic['arg_min_label']:
+        # we are using arg_min to cast one_hot_label to a single label
+        settings_dic_DCDL['operations'][6]['name'] = 'ArgMin'
+    else:
+        # we are using arg_max to cast one_hot_label to a single label
+        settings_dic_DCDL['operations'][6]['name'] = 'ArgMax'
+
+    settings_dic_SLS_black_box_prediction = {
+        # mode should be set in experiment
+        'mode': 'rule_extraction_with_sls_val',
+        # number_of_disjunction_term_in_SLS
+        'number_of_disjunction_term_in_SLS': 40,
+
+        'maximum_steps_in_SLS': 2000,
+
+        # name of operation which gives the output of the neural net
+        'label_to_use': settings_dic_DCDL['operations'][6]['name'],
+
+        # Probability in SLS to choose a term uniformly drown from formula
+        # if missed_instance has positive label
+        # otherwise the SLS search for the formula
+        # which differs in the smallest number of literals from missed_instance
+        'p_g1': .5,
+
+        # Probability in SLS to choose a literal uniformly drown from term
+        # if missed_instance has positive label.
+        # this literal will be removed from term
+        # otherwise the SLS removes all literals in term that differ from missed_instance
+        'p_g2': .5,
+
+        # Probability in SLS to choose a literal uniformly drown from formula
+        # if missed_instance has negative label
+        # otherwise uniformly pick 1024 many training instances
+        # search for literal whose addition to terms reduces score(batch) the most
+        # This instance will be added to term, which covers missed_instance before
+        'p_s': .5,
+
+        # if starts weights of the should be similar to kernel
+        # if you want this you have to specify the kernel the weights should be similar to
+        'init_with_kernel': False,
+
+        # use batch in SLS
+        'batch': True,
+
+        # if no more improvement found for 600 steps restart SLS with new random formula
+        'cold_restart': True,
+
+        # Decay factor, with which p_g1 and p_s can be reduces after train step be zero.
+        # Up to min_prob
+        'decay': 0,
         'min_prob': 0,
         # initialize SLS with empty formula instead of random
-        'zero_init' : False,
+        'zero_init': False,
     }
-    return general_settings_dic, setting_dic_NN, settings_dic_SLS
+
+
+    return general_settings_dic, setting_dic_NN, settings_dic_SLS_black_box_label, settings_dic_DCDL, settings_dic_SLS_black_box_prediction
