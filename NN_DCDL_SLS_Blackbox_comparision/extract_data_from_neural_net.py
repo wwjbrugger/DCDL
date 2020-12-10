@@ -10,7 +10,7 @@ def extract_data(neural_net,input_neural_net, operations_in_DCDL, print_nodes_in
             print('Operations in graph \n', )
             operations =  [n.name for n in sess.graph.as_graph_def().node]
             for operation in operations:
-                print(20 * '\t', operation)
+                print(5 * '\t', operation)
 
         for key, node_dic in operations_in_DCDL.items():
             node_name = node_dic['name']

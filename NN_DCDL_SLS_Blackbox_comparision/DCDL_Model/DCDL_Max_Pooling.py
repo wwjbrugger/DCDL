@@ -13,7 +13,10 @@ class Max_Pooling:
             data,
             block_size=self.properties['block_size'],
             func=np.max)
+
+
         return data_after_max_pooling, label
+
 
 
     def train(self, train_data, train_label, validation_data, validation_label):
@@ -21,7 +24,7 @@ class Max_Pooling:
 
 
     def prediction(self, data, original_label):
-        data_after_max_pooling = self.preprocess(
+        data_after_max_pooling, _ = self.preprocess(
             data=data,
             label=original_label)
         acc = None

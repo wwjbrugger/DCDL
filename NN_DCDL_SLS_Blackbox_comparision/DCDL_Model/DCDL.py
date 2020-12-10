@@ -15,7 +15,7 @@ class DCDL:
         self.operations = copy.deepcopy(operations)
         self.arg_min_label = arg_min_label
 
-        # create DCDL objects
+        # create DCDL subobjects
         for key, object_description_dic in self.operations.items():
             DCDL_operation = self.get_operation_object(object_description_dic=object_description_dic)
             self.operations[key]['operation'] = DCDL_operation
@@ -48,8 +48,8 @@ class DCDL:
             # get operation to train
             operation_dic = self.operations[key]
             operation_name = operation_dic['name']
-            #todo delete print
-            print(operation_name)
+
+            print('------ DCDL train to approximate operation {} -------'.format(operation_name))
             operation = operation_dic['operation']
             # get label
             current_train_label = DCDL_data_dic[operation_name]
@@ -88,9 +88,10 @@ class DCDL:
         # iterate through dic
         for key in order_index:
             # get operation to train
-            operation = self.operations[key]
+            operation_dic = self.operations[key]
+            operation = operation_dic['operation']
             current_data, _  = operation.prediction(data=current_data,
-                                                    label = None)
+                                                    original_label = None)
         # last prediction is prediction of DCDL
         prediction = current_data
 
@@ -109,13 +110,13 @@ class DCDL:
 
         label_flat = get_data.transform_to_boolean(label_flat)
 
-        if type(label_flat[0]) == np.bool_:
+        # DCDL has as input pictures in the shape [num_pic, width, height, channels]
+        if type(data[0][0][0][0]) == np.bool_ and type(label_flat[0]) == np.bool_:
             return data, label_flat
         else:
-            raise ValueError('Lable to process in DCDL should be '
-                             'from typ bool they are from type: lable {}'
-                             .format(type(label_flat[0])))
-
+            raise ValueError('Data to process in SLS should be '
+                             'from typ bool they are from type: data {}, lable {}'
+                             .format(type(data[0][0][0][0]), type(label_flat[0])))
 
 
 

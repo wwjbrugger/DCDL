@@ -9,24 +9,23 @@ class Dense:
     def __init__(self, properties):
         self.found_formula = None
         self.properties = properties
-        self.label_shape = None
+        # saves which form the output has to be e.g. [None, 14,14,8}
+        # None has to be set to the number of input example
+        self.output_shape = None
 
     def preprocess(self, data, label):
-        shape = data.shape
-        data_flat = data.reshape((shape[0], - 1))
-
-        if type(data_flat[0][0]) == np.bool_ and type(label[0]) == np.bool_:
-            return data_flat, label
+        if label is not None:
+            self.output_shape = list(label.shape)
+            self.output_shape[0] = data.shape[0]
         else:
-            raise ValueError('Data to process in SLS should be '
-                             'from typ bool they are from type: data {}, lable {}'
-                             .format(type(data_flat[0][0]), type(label[0])))
+            self.output_shape[0] = data.shape[0]
+
+        data_flat = data.reshape((data.shape[0], - 1))
+        return data_flat, label
+
 
 
     def train(self, train_data, train_label, validation_data, validation_label):
-        self.label_shape = train_label.shape
-        self.label_shape[0] = None
-
         train, label = self.preprocess(data=train_data,
                                        label=train_label)
 
@@ -46,7 +45,7 @@ class Dense:
                 min_prob=self.properties['SLS_dic']['min_prob'],
                 zero_init=self.properties['SLS_dic']['zero_init']
             )
-        elif self.mode in 'rule_extraction_with_sls_val':
+        elif self.properties['SLS_dic']['mode'] in 'rule_extraction_with_sls_val':
             val, val_label = self.preprocess(data=validation_data,
                                              label=validation_label)
             self.found_formula = SLS.rule_extraction_with_sls_val(
@@ -69,11 +68,12 @@ class Dense:
             )
 
     def prediction(self, data, original_label):
+        # original_label can be None
         data_flat, label = self.preprocess(data, original_label)
-        label_shape = self.label_shape
-        label_shape[0]=data_flat[0]
+        output_shape = self.output_shape
+
         prediction = SLS.calc_prediction_in_C(data=data_flat,
-                                              label_shape=label_shape,
+                                              label_shape=output_shape,
                                               found_formula=self.found_formula)
         acc = None
         return prediction, acc

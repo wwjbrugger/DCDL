@@ -66,7 +66,8 @@ if __name__ == '__main__':
     with open(path_to_store_settings, "wb") as f:
         pickle.dump({'general_settings_dic': general_settings_dic,
                      'setting_dic_NN': setting_dic_NN,
-                     'settings_dic_SLS_black_box_label': settings_dic_SLS_black_box_label},
+                     'settings_dic_SLS_black_box_label': settings_dic_SLS_black_box_label,
+                     'settings_dic_DCDL':settings_dic_DCDL},
                     f)
 
     # --------------------where to store neural network model-----------------------------------

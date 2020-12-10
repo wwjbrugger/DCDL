@@ -14,8 +14,7 @@ def get_experimental_settings():
         'default_store_path': default_store_path,
 
         # for numbers and fashion should the value be 55000
-        #todo set back to 55000
-        'size_train': 5000,
+        'size_train': 55000,
 
         # size of validation set
         'size_valid': 5000,
@@ -52,8 +51,7 @@ def get_experimental_settings():
         # name_of_model
         'name_of_model': 'two_conv_2x2_{}'.format(general_settings_dic['timestr']),
         # number_train_iteration
-        # todo set back to 2000
-        'number_train_iteration': 20,
+        'number_train_iteration': 2000,
         # shape of kernel used in first convolution
         'shape_of_kernel_conv_1': (2, 2),
         # number kernel used in first_convolution
@@ -91,6 +89,7 @@ def get_experimental_settings():
         'logging': True,
 
     }
+
     # input channel for numbers and fashion is always 1
     # code is for consistency with  cifar set_settings
     if general_settings_dic['convert_to_grey']:
