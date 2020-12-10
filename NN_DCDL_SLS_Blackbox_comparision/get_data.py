@@ -226,3 +226,19 @@ def convert_to_grey(pic_array):
     for i, pic in enumerate(pic_array):
         pictures_grey[i, :, :, 0] = np.dot(pic[:, :, :3], [0.2989, 0.5870, 0.1140])
     return pictures_grey
+
+
+def transform_label_to_one_hot(label, using_argmin_label):
+    if np.ndim(label) != 1:
+        raise ValueError('Label array have to be one dimensional \n'
+                         'the input dimension is {}'.format(label.shape()))
+    #todo delete comments
+    if using_argmin_label:
+        # argmin function was used to cast one hot label to one number
+        one_hot_label = np.array([[1,0] if l else [0,1] for l in label])
+        #one_hot_label = np.where(label,[1,0], [0,1])
+    else:
+        # argmax function was used to cast one hot label to to one number
+        one_hot_label = np.array([[0, 1] if l else [1, 0] for l in label])
+        #one_hot_label = np.where(label,[0,1], [1,0])
+    return one_hot_label

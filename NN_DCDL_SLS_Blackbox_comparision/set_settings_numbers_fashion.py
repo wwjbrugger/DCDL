@@ -4,6 +4,7 @@ from pathlib import Path
 
 def get_experimental_settings():
     default_store_path = Path('/home/jbrugger/PycharmProjects/dcdl_final/NN_DCDL_SLS_Blackbox_comparision')
+    setup_name = 'garbage'
 
     general_settings_dic = {
         # set seed None if you don't want to set an explicit seed
@@ -12,6 +13,7 @@ def get_experimental_settings():
         'seed': None,
         'timestr': time.strftime("%Y%m%d-%H%M%S"),
         'default_store_path': default_store_path,
+        'setup_name': setup_name,
 
         # for numbers and fashion should the value be 55000
         'size_train': 55000,
@@ -44,7 +46,8 @@ def get_experimental_settings():
         # how to convert [x,y] to one number switch meaning of label
         # e.g. arg_min([0,1]) = 0
         # e.g. arg_max([0, 1]) = 1
-        'arg_min_label': True
+        #todo change backto True
+        'arg_min_label': False
     }
 
     setting_dic_NN = {
@@ -314,6 +317,57 @@ def get_experimental_settings():
         settings_dic_DCDL['operations'][6]['name'] = 'ArgMin'
     else:
         # we are using arg_max to cast one_hot_label to a single label
-        settings_dic_DCDL[6]['name'] = 'ArgMax'
+        settings_dic_DCDL['operations'][6]['name'] = 'ArgMax'
 
-    return general_settings_dic, setting_dic_NN, settings_dic_SLS_black_box_label, settings_dic_DCDL
+
+    settings_dic_SLS_black_box_prediction = {
+        # mode should be set in experiment
+        'mode': 'rule_extraction_with_sls_val',
+        # number_of_disjunction_term_in_SLS
+        'number_of_disjunction_term_in_SLS': 40,
+
+        'maximum_steps_in_SLS': 2000,
+
+        # name of operation which gives the output of the neural net
+        'label_to_use' : settings_dic_DCDL['operations'][6]['name'],
+
+        # Probability in SLS to choose a term uniformly drown from formula
+        # if missed_instance has positive label
+        # otherwise the SLS search for the formula
+        # which differs in the smallest number of literals from missed_instance
+        'p_g1': .5,
+
+        # Probability in SLS to choose a literal uniformly drown from term
+        # if missed_instance has positive label.
+        # this literal will be removed from term
+        # otherwise the SLS removes all literals in term that differ from missed_instance
+        'p_g2': .5,
+
+        # Probability in SLS to choose a literal uniformly drown from formula
+        # if missed_instance has negative label
+        # otherwise uniformly pick 1024 many training instances
+        # search for literal whose addition to terms reduces score(batch) the most
+        # This instance will be added to term, which covers missed_instance before
+        'p_s': .5,
+
+        # if starts weights of the should be similar to kernel
+        # if you want this you have to specify the kernel the weights should be similar to
+        'init_with_kernel': False,
+
+        # use batch in SLS
+        'batch': True,
+
+        # if no more improvement found for 600 steps restart SLS with new random formula
+        'cold_restart': True,
+
+        # Decay factor, with which p_g1 and p_s can be reduces after train step be zero.
+        # Up to min_prob
+        'decay': 0,
+        'min_prob': 0,
+        # initialize SLS with empty formula instead of random
+        'zero_init': False,
+    }
+
+
+
+    return general_settings_dic, setting_dic_NN, settings_dic_SLS_black_box_label, settings_dic_DCDL, settings_dic_SLS_black_box_prediction
