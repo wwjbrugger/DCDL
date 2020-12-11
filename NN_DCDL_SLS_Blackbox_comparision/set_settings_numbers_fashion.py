@@ -7,7 +7,7 @@ def get_experimental_settings():
     # For the current working directory
     default_store_path = Path().absolute()
     # name of the experiment
-    setup_name = 'garbage'
+    setup_name = 'Arg_min_0'
 
     general_settings_dic = {
         # set seed None if you don't want to set an explicit seed

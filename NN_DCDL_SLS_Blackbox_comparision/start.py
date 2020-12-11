@@ -38,7 +38,7 @@ if __name__ == '__main__':
     if args.dataset in 'numbers' or args.dataset in 'fashion':
         general_settings_dic, setting_dic_NN, \
         settings_dic_SLS_black_box_label, settings_dic_DCDL, \
-        settings_dic_SLS_black_box_prediction    = \
+        settings_dic_SLS_black_box_prediction = \
             settings_number_fashion.get_experimental_settings()
 
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
                      'setting_dic_NN': setting_dic_NN,
                      'settings_dic_SLS_black_box_label': settings_dic_SLS_black_box_label,
                      'settings_dic_DCDL': settings_dic_DCDL,
-                     'settings_dic_SLS_black_box_prediction' : settings_dic_SLS_black_box_prediction},
+                     'settings_dic_SLS_black_box_prediction': settings_dic_SLS_black_box_prediction},
                     f)
 
     # --------------------where to store neural network model-----------------------------------
@@ -93,15 +93,14 @@ if __name__ == '__main__':
         general_settings_dic['default_store_path'] / \
         'settings' / \
         general_settings_dic['setup_name'] / \
-        general_settings_dic['data_set_to_use']/\
+        general_settings_dic['data_set_to_use'] / \
         'label_{}'.format(general_settings_dic['one_against_all']) / \
         'NN_DCDL_SLS_Blackbox_comparision{}.pkl'.format(
             general_settings_dic['timestr'])
 
-
     path_to_store_pd_results = \
         general_settings_dic['default_store_path'] / \
-        'results'/ \
+        'results' / \
         general_settings_dic['setup_name'] / \
         general_settings_dic['data_set_to_use'] / \
         'label_{}'.format(general_settings_dic['one_against_all']) / \
@@ -111,9 +110,14 @@ if __name__ == '__main__':
     print('pandas results are stored in: ', path_to_store_pd_results)
 
     # create empty pandas files for results
-    column_name = ['Neural network', 'DCDL', 'SLS BB prediction', 'SLS BB label']
+    column_name = ['Neural network', 'DCDL', 'SLS BB prediction', 'SLS BB label', 'setup']
 
     results = pd.DataFrame(columns=column_name)
+    results.at['setup', 'setup'] = '{}_{}_{}'.format(
+        general_settings_dic['setup_name'],
+        general_settings_dic['data_set_to_use'],
+        general_settings_dic['one_against_all']
+    )
 
     # ---------------------------------------- set random seed if given-----------------------------------
     if general_settings_dic['seed'] is not None:
@@ -198,9 +202,6 @@ if __name__ == '__main__':
     print('results after training neural net \n',
           tabulate(results.round(2), headers='keys', tablefmt='psql'))
 
-
-
-
     # ------------------------------------- train DCDL -----------------------------------------
     start = time.time()
     DCDL_data_dic = extract_data_from_neural_net.extract_data(
@@ -241,7 +242,6 @@ if __name__ == '__main__':
 
     print('results after training DCDL \n',
           tabulate(results.round(2), headers='keys', tablefmt='psql'))
-
 
     # ---------------------------------------train and evaluate SLS Blackbox with Label -----------------------------------
     start = time.time()
@@ -360,7 +360,7 @@ if __name__ == '__main__':
     # get prediction of neural net with the key of the lastoperation
 
     prediction_nn_test = get_data.transform_label_to_one_hot(
-        label = DCDL_test_dic[settings_dic_DCDL['name_last_operation']],
+        label=DCDL_test_dic[settings_dic_DCDL['name_last_operation']],
         using_argmin_label=general_settings_dic['arg_min_label'])
 
     results.at['Test set Similarity to NN ', 'Neural network'] = \
@@ -369,15 +369,15 @@ if __name__ == '__main__':
 
     results.at['Test set Similarity to NN ', 'DCDL'] = \
         DCDL_objc.prediction(data=data_dic['test'],
-                            original_label=prediction_nn_test)
+                             original_label=prediction_nn_test)
 
     results.at['Test set Similarity to NN ', 'SLS BB label'] = \
         SLS_black_box_label.prediction(data=data_dic['test'],
-                             original_label=prediction_nn_test)
+                                       original_label=prediction_nn_test)
 
     results.at['Test set Similarity to NN ', 'SLS BB prediction'] = \
         SLS_black_box_prediction.prediction(data=data_dic['test'],
-                                       original_label=prediction_nn_test)
+                                            original_label=prediction_nn_test)
 
     print('results after similarity measurement \n',
           tabulate(results.round(2), headers='keys', tablefmt='psql'))
