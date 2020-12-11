@@ -22,3 +22,20 @@ def extract_data(neural_net,input_neural_net, operations_in_DCDL, print_nodes_in
                      feed_dict={neural_net.Input_in_Graph: input_neural_net})
             dic_output_neural_net_bool[node_name] = get_data.transform_to_boolean(output_operation)
     return dic_output_neural_net_bool
+
+
+def extract_data_single_node(neural_net,input_neural_net, label, node_name):
+    with tf.Session() as sess:
+        neural_net.saver.restore(sess, neural_net.folder_to_save)
+        # get operation from graph
+        operation = \
+            sess.graph.get_operation_by_name(node_name)
+        # get output for operation if feed with input_neural_net
+        if label is None:
+            output_operation = sess.run(operation.outputs[0],
+                     feed_dict={neural_net.Input_in_Graph: input_neural_net,})
+        else:
+            output_operation = sess.run(operation.outputs[0],
+                                        feed_dict={neural_net.Input_in_Graph: input_neural_net,
+                                                   neural_net.True_Label: label})
+    return output_operation
