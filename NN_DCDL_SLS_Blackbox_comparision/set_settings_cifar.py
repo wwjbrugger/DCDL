@@ -7,7 +7,7 @@ def get_experimental_settings():
     # For the current working directory
     default_store_path = Path().absolute()
     # name of the experiment
-    setup_name = 'Arg_min_0'
+    setup_name = 'Arg_max_0'
 
     general_settings_dic = {
         # set seed None if you don't want to set an explicit seed
@@ -52,7 +52,7 @@ def get_experimental_settings():
         # how to convert [x,y] to one number switch meaning of label
         # e.g. arg_min([0,1]) = 0
         # e.g. arg_max([0, 1]) = 1
-        'arg_min_label': True
+        'arg_min_label': False
     }
 
     setting_dic_NN = {
