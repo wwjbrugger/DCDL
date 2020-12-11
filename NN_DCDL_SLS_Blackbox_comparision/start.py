@@ -69,7 +69,6 @@ if __name__ == '__main__':
     path_to_store_settings.parent.mkdir(parents=True, exist_ok=True)
     print('settings are stored in: ', path_to_store_settings)
 
-    # todo add other settings
     with open(path_to_store_settings, "wb") as f:
         pickle.dump({'general_settings_dic': general_settings_dic,
                      'setting_dic_NN': setting_dic_NN,
@@ -136,7 +135,8 @@ if __name__ == '__main__':
         data_set_to_use=general_settings_dic['data_set_to_use'],
         convert_to_grey=general_settings_dic['convert_to_grey'],
         values_max_1=general_settings_dic['pic_range_0_1'],
-        visualize_data=general_settings_dic['visualize_data'])
+        visualize_data=general_settings_dic['visualize_data']
+    )
 
     # --------------------------------------train neural net-------------------------------------------------
     start = time.time()
@@ -242,6 +242,7 @@ if __name__ == '__main__':
     print('results after training DCDL \n',
           tabulate(results.round(2), headers='keys', tablefmt='psql'))
 
+
     # ---------------------------------------train and evaluate SLS Blackbox with Label -----------------------------------
     start = time.time()
 
@@ -345,6 +346,40 @@ if __name__ == '__main__':
                                             original_label=data_dic['label_test'])
 
     print('results after training SLS black box prediction \n',
+          tabulate(results.round(2), headers='keys', tablefmt='psql'))
+
+    # --------------------------------------- similarity to neural net-----------------------------------
+
+    DCDL_test_dic = extract_data_from_neural_net.extract_data(
+        neural_net=neural_net,
+        input_neural_net=get_data.transform_boolean_to_minus_one_and_one(data_dic['test']),
+        operations_in_DCDL=settings_dic_DCDL['operations'],
+        # already printed in step before
+        print_nodes_in_neural_net=False)
+
+    # get prediction of neural net with the key of the lastoperation
+
+    prediction_nn_test = get_data.transform_label_to_one_hot(
+        label = DCDL_test_dic[settings_dic_DCDL['name_last_operation']],
+        using_argmin_label=general_settings_dic['arg_min_label'])
+
+    results.at['Test set Similarity to NN ', 'Neural network'] = \
+        neural_net.evaluate(input=get_data.transform_boolean_to_minus_one_and_one(data_dic['test']),
+                            label=prediction_nn_test)
+
+    results.at['Test set Similarity to NN ', 'DCDL'] = \
+        DCDL_objc.prediction(data=data_dic['test'],
+                            original_label=prediction_nn_test)
+
+    results.at['Test set Similarity to NN ', 'SLS BB label'] = \
+        SLS_black_box_label.prediction(data=data_dic['test'],
+                             original_label=prediction_nn_test)
+
+    results.at['Test set Similarity to NN ', 'SLS BB prediction'] = \
+        SLS_black_box_prediction.prediction(data=data_dic['test'],
+                                       original_label=prediction_nn_test)
+
+    print('results after similarity measurement \n',
           tabulate(results.round(2), headers='keys', tablefmt='psql'))
 
     # --------------------------------------- save results  -----------------------------------

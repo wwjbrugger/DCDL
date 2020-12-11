@@ -21,7 +21,7 @@ def get_data(size_train, size_valid, dithering_used, one_against_all, number_cla
     :param one_against_all: class to test rest against
     :param data_set_to_use: which data set to use
     :param convert_to_grey: if pictures should be converted to grey before using
-    :param values_max_1: # are pixel of pictures in range [0 to 1]? other option [0 to 255]
+    :param values_max_1: are pixel of pictures in range [0 to 1]? other option [0 to 255]
     :return: train, validation and test dataset in bool format [True, False]
     """
 
@@ -232,13 +232,10 @@ def transform_label_to_one_hot(label, using_argmin_label):
     if np.ndim(label) != 1:
         raise ValueError('Label array have to be one dimensional \n'
                          'the input dimension is {}'.format(label.shape()))
-    #todo delete comments
     if using_argmin_label:
         # argmin function was used to cast one hot label to one number
         one_hot_label = np.array([[1,0] if l else [0,1] for l in label])
-        #one_hot_label = np.where(label,[1,0], [0,1])
     else:
         # argmax function was used to cast one hot label to to one number
         one_hot_label = np.array([[0, 1] if l else [1, 0] for l in label])
-        #one_hot_label = np.where(label,[0,1], [1,0])
     return one_hot_label
