@@ -5,7 +5,7 @@ from pathlib import Path
 def get_experimental_settings():
     # where to store settings and results
     # For the current working directory
-    default_store_path =  Path().absolute()
+    default_store_path = Path().absolute()
     # name of the experiment
     setup_name = 'garbage'
 
@@ -46,7 +46,7 @@ def get_experimental_settings():
         'visualisation_range_-1_1': True,
 
         # visualize data during training
-        'visualize_data': True,
+        'visualize_data': False,
 
         # how to convert [x,y] to one number switch meaning of label
         # e.g. arg_min([0,1]) = 0
@@ -278,7 +278,7 @@ def get_experimental_settings():
             # approximation last layer
             # name is set bellow dependent on if arg_min or arg_max is used for
             # mapping one-hot-label to single label
-            6: {'name':  None,
+            6: {'name': None,
                 'kind': 'dense',
                 'properties': {
                     'SLS_dic': {  # mode should be set in experiment
@@ -325,18 +325,19 @@ def get_experimental_settings():
                         # initialize SLS with empty formula instead of random
                         'zero_init': False,
                     }
-                }}
-        },
-
+                }
+                }
+        }
     }
 
     if general_settings_dic['arg_min_label']:
         # we are using arg_min to cast one_hot_label to a single label
-        settings_dic_DCDL['operations'][6]['name'] = 'ArgMin'
+        settings_dic_DCDL['operations'][6]['name'] = 'prediction_to_one_hot/ArgMin'
     else:
         # we are using arg_max to cast one_hot_label to a single label
-        settings_dic_DCDL['operations'][6]['name'] = 'ArgMax'
+        settings_dic_DCDL['operations'][6]['name'] = 'prediction_to_one_hot/ArgMax'
 
+    settings_dic_DCDL['name_last_operation'] = settings_dic_DCDL['operations'][6]['name']
 
     settings_dic_SLS_black_box_prediction = {
         # mode should be set in experiment
@@ -347,7 +348,7 @@ def get_experimental_settings():
         'maximum_steps_in_SLS': 2000,
 
         # name of operation which gives the output of the neural net
-        'label_to_use' : settings_dic_DCDL['operations'][6]['name'],
+        'label_to_use': settings_dic_DCDL['operations'][6]['name'],
 
         # Probability in SLS to choose a term uniformly drown from formula
         # if missed_instance has positive label
@@ -385,7 +386,5 @@ def get_experimental_settings():
         # initialize SLS with empty formula instead of random
         'zero_init': False,
     }
-
-
 
     return general_settings_dic, setting_dic_NN, settings_dic_SLS_black_box_label, settings_dic_DCDL, settings_dic_SLS_black_box_prediction

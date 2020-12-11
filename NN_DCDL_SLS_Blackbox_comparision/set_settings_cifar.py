@@ -1,15 +1,18 @@
 import time
 from pathlib import Path
 
+
 def get_experimental_settings():
-    #todo fit to DCDL experiment
-    default_store_path = Path('/home/jbrugger/PycharmProjects/dcdl_final/NN_DCDL_SLS_Blackbox_comparision')
+    # where to store settings and results
+    # For the current working directory
+    default_store_path = Path().absolute()
+    # name of the experiment
     setup_name = 'garbage'
 
     general_settings_dic = {
         # set seed None if you don't want to set an explicit seed
         # seed is not working at the moment
-        # Attention at the moment we can't set the seed for the SLS Algorithm
+        # attention at the moment we can't set the seed for the SLS Algorithm
         'seed': None,
         # Timestamp to make the results unique
         'timestr': time.strftime("%Y%m%d-%H%M%S"),
@@ -26,7 +29,7 @@ def get_experimental_settings():
         'size_valid': 5000,
 
         # shape of input pictures
-        'shape_of_input_pictures' : [32,32],
+        'shape_of_input_pictures': [32, 32],
 
         # If pictures should be dithered set values to 0 or 1 (see https://en.wikipedia.org/wiki/Dither)
         'dithering_used': True,
@@ -37,7 +40,6 @@ def get_experimental_settings():
         # are pixel of pictures in range [0 to 1]? other option [0 to 255]
         'pic_range_0_1': True,
 
-
         # if pictures should be converted to grey before using
         'convert_to_grey': False,
 
@@ -45,18 +47,18 @@ def get_experimental_settings():
         'visualisation_range_-1_1': True,
 
         # visualize data during training
-        'visualize_data': True,
+        'visualize_data': False,
 
         # how to convert [x,y] to one number switch meaning of label
         # e.g. arg_min([0,1]) = 0
         # e.g. arg_max([0, 1]) = 1
         'arg_min_label': True
     }
-#todo update values as in
+
     setting_dic_NN = {
         # name_of_model
         'name_of_model': 'two_conv_2x2_{}'.format(general_settings_dic['timestr']),
-        # number_train_iteration
+        # number_train_iteration in neural net
         'number_train_iteration': 2000,
         # shape of kernel used in first convolution
         'shape_of_kernel_conv_1': (2, 2),
@@ -147,6 +149,7 @@ def get_experimental_settings():
         # initialize SLS with empty formula instead of random
         'zero_init': False,
     }
+
     settings_dic_DCDL = {
         # if all all nodes in neural net should be print helpful for debugging
         # for a better overview use tensorboard
@@ -320,17 +323,19 @@ def get_experimental_settings():
                         # initialize SLS with empty formula instead of random
                         'zero_init': False,
                     }
-                }}
-        },
-
+                }
+                }
+        }
     }
 
     if general_settings_dic['arg_min_label']:
         # we are using arg_min to cast one_hot_label to a single label
-        settings_dic_DCDL['operations'][6]['name'] = 'ArgMin'
+        settings_dic_DCDL['operations'][6]['name'] = 'prediction_to_one_hot/ArgMin'
     else:
         # we are using arg_max to cast one_hot_label to a single label
-        settings_dic_DCDL['operations'][6]['name'] = 'ArgMax'
+        settings_dic_DCDL['operations'][6]['name'] = 'prediction_to_one_hot/ArgMax'
+
+    settings_dic_DCDL['name_last_operation'] = settings_dic_DCDL['operations'][6]['name']
 
     settings_dic_SLS_black_box_prediction = {
         # mode should be set in experiment
@@ -379,6 +384,5 @@ def get_experimental_settings():
         # initialize SLS with empty formula instead of random
         'zero_init': False,
     }
-
 
     return general_settings_dic, setting_dic_NN, settings_dic_SLS_black_box_label, settings_dic_DCDL, settings_dic_SLS_black_box_prediction

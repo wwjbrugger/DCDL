@@ -73,7 +73,6 @@ class network_two_convolution():
         self.logging = logging
         self.save_path_logs = save_path_logs
 
-
         if activation_str in 'binarize_STE':
             self.activation = binarize_STE
         elif activation_str in 'relu':
@@ -89,12 +88,21 @@ class network_two_convolution():
 
     def built_graph(self):
 
+        # -------------------------------Define Placeholder for Graph -----------------------------------
         self.Input_in_Graph = tf.compat.v1.placeholder(
             dtype=tf.compat.v1.float32,
             shape=(None, self.input_shape[0], self.input_shape[1], self.input_channels))
+
         # True Label are one hot label with shape e.g. [[0,1], ... , [1,0]]
         self.True_Label = tf.compat.v1.placeholder(dtype=tf.compat.v1.float32, shape=[None, self.classes])
+
+        # default value for dropout during evaluation,
+        self.Dropout_Prob = tf.placeholder_with_default(0.0, shape=(), name='dropout_prob')
+
+        # ------------------------------- Build Graph --------------------------------------------
         X = self.Input_in_Graph
+
+        # ----- first convolution
         with tf.compat.v1.variable_scope("dcdl_conv_1", reuse=False):
             # get first convolution block
             X = tf.compat.v1.layers.conv2d(inputs=X,
@@ -104,54 +112,63 @@ class network_two_convolution():
                                            padding="same",
                                            activation=self.activation,
                                            use_bias=self.use_bias_in_conv_1)
+        # ------ max pooling
+        X = tf.compat.v1.nn.max_pool(value=X,
+                                     ksize=self.shape_max_pooling_layer,
+                                     strides=self.stride_max_pooling,
+                                     padding='SAME')
 
-        X = tf.compat.v1.nn.max_pool(X, self.shape_max_pooling_layer, strides=self.stride_max_pooling, padding='SAME')
-
+        # ------ second convolution
         with tf.compat.v1.variable_scope('dcdl_conv_2', reuse=False):
             # get second convolution block
-            X = tf.compat.v1.layers.conv2d(inputs=X, filters=self.number_of_kernel_conv_2,
+            X = tf.compat.v1.layers.conv2d(inputs=X,
+                                           filters=self.number_of_kernel_conv_2,
                                            kernel_size=self.shape_of_kernel_conv_2,
                                            strides=[self.stride_conv_2, self.stride_conv_2], padding="same",
                                            activation=self.activation,
                                            use_bias=self.use_bias_in_conv_2)
 
-        X = tf.compat.v1.nn.dropout(X, rate=self.dropout_rate)
-        X = tf.compat.v1.layers.flatten(X)
+        # ------ dropout
+        X = tf.compat.v1.nn.dropout(x=X,
+                                    rate=self.Dropout_Prob)
 
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        # add properties
-        # Computes softmax activations
-        # inputs = X,
-        # units = self.classes
-        # activation = tf.compat.v1.nn.softmax
-        self.prediction = tf.compat.v1.layers.dense(X, self.classes, tf.compat.v1.nn.softmax)
+        # ------ flatten
+        X = tf.compat.v1.layers.flatten(inputs=X)
 
-        # calculate loss
-        self.loss = tf.compat.v1.reduce_mean(-tf.compat.v1.reduce_sum(self.True_Label *
-                                                                      tf.compat.v1.log(self.prediction + 1E-10),
-                                                                      reduction_indices=[1]))  # + reg2
-        # make step with optimizer
-        self.step = tf.compat.v1.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
+        # ------- make prediction
+        # prediction has the form e.g. [[0.25, 0.3], [...],...]
+        self.prediction = tf.compat.v1.layers.dense(inputs=X,
+                                                    units=self.classes,
+                                                    activation=tf.compat.v1.nn.softmax)
 
-        # Evaluate model
-        # self.prediction has form [[p1,p2],[p1,p2], ...]
-        # arg_max get index of higher value of the prediction
-        if self.arg_min_label:
-            # use argmin function to reduce one hot label to one number
-            self.one_hot_out = tf.compat.v1.argmin(self.prediction, 1)
-            self.hits = tf.compat.v1.equal(self.one_hot_out, tf.compat.v1.argmin(self.True_Label, 1))
-        else:
-            # use argmax function to reduce one hot label to one number
-            self.one_hot_out = tf.compat.v1.argmax(self.prediction, 1)
-            self.hits = tf.compat.v1.equal(self.one_hot_out, tf.compat.v1.argmax(self.True_Label, 1))
+        with tf.compat.v1.variable_scope('optimization_of_graph', reuse=False):
+            # calculate loss
+            self.loss = tf.compat.v1.reduce_mean(
+                -tf.compat.v1.reduce_sum(
+                    self.True_Label * tf.compat.v1.log(self.prediction + 1E-10),
+                    reduction_indices=[1]))  # + reg2
 
-        self.accuracy = tf.compat.v1.reduce_mean(tf.compat.v1.cast(self.hits, tf.compat.v1.float32))
+            # make step with optimizer
+            self.step = tf.compat.v1.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
+
+        with tf.compat.v1.variable_scope('prediction_to_one_hot', reuse=False):
+            # Evaluate model
+            # self.prediction has form [[p1,p2],[p1,p2], ...]
+            if self.arg_min_label:
+                # use argmin function to reduce one hot label to one number
+                self.one_hot_out = tf.compat.v1.argmin(self.prediction, 1)
+                self.hits = tf.compat.v1.equal(self.one_hot_out, tf.compat.v1.argmin(self.True_Label, 1))
+            else:
+                # use argmax function to reduce one hot label to one number
+                self.one_hot_out = tf.compat.v1.argmax(self.prediction, 1)
+                self.hits = tf.compat.v1.equal(self.one_hot_out, tf.compat.v1.argmax(self.True_Label, 1))
+
+            self.accuracy = tf.compat.v1.reduce_mean(tf.compat.v1.cast(self.hits, tf.compat.v1.float32))
 
         # Initialize the variables
         self.init = tf.compat.v1.global_variables_initializer()
 
         # Save model
-
         self.saver = tf.compat.v1.train.Saver()
 
     def training(self, train, label_train, val, label_val, logging):
@@ -160,8 +177,7 @@ class network_two_convolution():
             if logging:
                 # logs can be visualized in tensorboard.
                 # useful for see structure of the graph
-                # Update possibility (was not changed to be consistent with existing experiment results):
-                # delete following comment
+                # tensorboard --logdir label/model_you_are_interested_in
 
                 writer = tf.compat.v1.summary.FileWriter(self.save_path_logs, session=sess,
                                                          graph=sess.graph)  # + self.name_of_model, sess.graph)
@@ -174,7 +190,11 @@ class network_two_convolution():
                 indices = np.random.choice(len(train), self.batch_size)
                 batch_X = train[indices]
                 batch_Y = label_train[indices]
-                feed_dict = {self.Input_in_Graph: batch_X, self.True_Label: batch_Y}
+                feed_dict = {
+                    self.Dropout_Prob: self.dropout_rate,
+                    self.Input_in_Graph: batch_X,
+                    self.True_Label: batch_Y
+                }
                 # self step calls the optimizer
                 _, lo, acc = sess.run([self.step, self.loss, self.accuracy], feed_dict=feed_dict)
                 if iteration % self.print_every == 1:
@@ -182,12 +202,11 @@ class network_two_convolution():
 
                 if iteration % self.check_every == 1:
                     # validate net on train data
-                    # Update possibility (was not changed to be consistent with existing experiment results):
-                    # 5000 should be a variable which is set in the main script
-                    # e.g. size_of_val_used_in_one_step = 5000
-                    indices = np.random.choice(len(val), 5000)
-                    acc, lo = sess.run([self.accuracy, self.loss], feed_dict={
-                        self.Input_in_Graph: val[indices], self.True_Label: label_val[indices]})
+                    acc, lo = sess.run([self.accuracy, self.loss],
+                                       feed_dict={
+                                           self.Input_in_Graph: val,
+                                           self.True_Label: label_val
+                                       })
                     print("step: ", iteration, 'Accuracy at validation_set: ', acc, )
 
                     loss_list.append(lo)
