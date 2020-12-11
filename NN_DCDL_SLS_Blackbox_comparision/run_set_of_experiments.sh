@@ -43,7 +43,7 @@ mkdir -p "$OUTPUT_DIR"
 
 
 for ((repetiton=0 ; repetiton<$REPETITIONS ; repetiton++)); do
-	for ((label=0 ; label<9 ; label++)); do
+	for ((label=0 ; label<10 ; label++)); do
 		echo repetition $repetition label $label
 		 PREFIX="$DATASET-l$label-r$repetiton-$(date +%Y-%m-%dT%H-%M)"
 		 PYTHONPATH="$PWD/.." OMP_NUM_THREADS=$MAX_THREADS python3 start.py $DATASET $label >"$OUTPUT_DIR/$PREFIX-out.log" 2>"$OUTPUT_DIR/$PREFIX-err.log"
