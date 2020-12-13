@@ -1,3 +1,12 @@
+## Content 
+
+In this Repository we implement the concept of first-order convolutional rules (DCDL) ,
+which are logical rules that can be extracted using a convolutional neural network (CNN).
+
+The complexity of the DCDL approach depends on the size of the convolutional filter
+and not on the dimensionality of the input. 
+Our approach is based on rule extraction from binary neural networks
+with stochastic local search (SLS).
 ## Structure of the repository
 
 #####  NN_DCDL_SLS_Blackbox_comparison
@@ -26,5 +35,8 @@ C++ implementation of the SLS algorithm
 Structure of the neural networks for the experiments 
 Structure for storing the extracted logical rules 
 
-#### install necessary packages 
+##### install necessary packages 
 `sudo pip install -r requirements.txt`
+
+##### Contact 
+For questions, comments or bugs please contact jbrugge AT students.uni-mainz.de
