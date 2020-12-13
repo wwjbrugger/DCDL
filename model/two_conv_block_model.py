@@ -3,15 +3,11 @@ import tensorflow as tf
 
 import model.Gradient_helpLayers_convBlock as helper
 
-# Update possibility (was not changed to be consistent with existing experiment results):
-# delete below comment
 
-#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
-#tf.compat.v1compat.v1.logging.set_verbosity(tf.compat.v1compat.v1.logging.ERROR)
 class network_two_convolution():
 
     def __init__(self,
-                 path_to_use,
+                 path_to_store_model,
                  # Update possibility (was not changed to be consistent with existing experiment results):
                  # no default values set all in main method
                  name_of_model = "bla",
@@ -44,7 +40,7 @@ class network_two_convolution():
         # Update possibility (was not changed to be consistent with existing experiment results):
         # delete following comment
         #self.folder_to_save = os.path.dirname(sys.argv[0]) + path_to_use['store_model'] + str(name_of_model)
-        self.folder_to_save = path_to_use['store_model'] + str(name_of_model)
+        self.folder_to_save = path_to_store_model + str(name_of_model)
         self.name_of_model = name_of_model
         self.number_of_kernel = number_of_kernel
         self.shape_of_kernel = shape_of_kernel
@@ -103,14 +99,9 @@ class network_two_convolution():
         # make step with optimizer
         self.step = tf.compat.v1.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
 
-        # map one hot prediction to class prediction
-        #  with two classes this is identically  with input[:,[1]]
-        #  [[0,1],         [1]
-        #   [1,0]     ->   [0]
-        #   ...]
-        # Update possibility (was not changed to be consistent with existing experiment results):
-        # remove arg max function
-        # or use the DCDL approach to get the values already at the node self.prediction.
+        # Evaluate model
+        # self.prediction has form [[p1,p2],[p1,p2], ...]
+        # arg_max get index of higher value of the prediction
         self.one_hot_out = tf.compat.v1.argmax(self.prediction, 1)
         self.hits = tf.compat.v1.equal(self.one_hot_out, tf.compat.v1.argmax(self.True_Label, 1))
         self.accuracy = tf.compat.v1.reduce_mean(tf.compat.v1.cast(self.hits, tf.compat.v1.float32))
@@ -130,7 +121,7 @@ class network_two_convolution():
                 # useful for see structure of the graph
                 # Update possibility (was not changed to be consistent with existing experiment results):
                 # delete following comment
-                #path_to_store_logs = os.path.dirname(sys.argv[0]) + path_to_use['logs']
+
                 writer = tf.compat.v1.summary.FileWriter(path_to_use['logs'], session=sess,
                                                graph=sess.graph)  # + self.name_of_model, sess.graph)
 

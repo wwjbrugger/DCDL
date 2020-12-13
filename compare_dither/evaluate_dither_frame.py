@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from scipy import stats
 import pandas as pd
-import helper_methods as help
+import helper_methods as helper_methods
 
 
 def return_label(path):
@@ -68,7 +68,7 @@ def result_single_label(dataset):
             # plot statistics for tried dither approaches for one dataset and one label
             fig, ax = plt.subplots()
             save_path = 'results/single_label/' + dataset + '/label_' + str(i)
-            help.graph_with_error_bar(x_values, y_values, y_stdr, title=titel,fix_y_axis=True , y_axis_tile='accuracy [%]', ax_out=ax,
+            helper_methods.graph_with_error_bar(x_values, y_values, y_stdr, title=titel,fix_y_axis=True , y_axis_tile='accuracy [%]', ax_out=ax,
                                       save_path=save_path)
 
 def result_dataset(dataset, ax):
@@ -94,7 +94,7 @@ def result_dataset(dataset, ax):
         y_values = df.mean(axis=0).tolist()
         y_stdr = df.std(axis=0).tolist()
 
-        help.graph_with_error_bar(x_values, y_values, y_stdr, title=titel, fix_y_axis=True,
+        helper_methods.graph_with_error_bar(x_values, y_values, y_stdr, title=titel, fix_y_axis=True,
                                   y_axis_tile='accuracy [%]', ax_out=ax, plot_line=True
                                   )
 
@@ -150,7 +150,7 @@ def t_statistik(dataset):
                                                                                       two_tailed_p_test))
         # save result of student-t-test for dataset as html file
         with pd.option_context('display.precision', 2):
-            html = df2.style.applymap(help.mark_small_values).render()
+            html = df2.style.applymap(helper_methods.mark_small_values).render()
         with open('results/students-test_{}.html'.format(dataset), "w") as f:
             f.write(html)
 

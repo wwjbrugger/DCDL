@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 
-def visualize_pic(pic_array, label_array, class_names, titel, colormap):
+def visualize_pic(pic_array, label_array, class_names, title, colormap):
     """ show 10 first  pictures """
     for i in range(20):
         plt.subplot(5, 4, i + 1)
@@ -22,13 +22,13 @@ def visualize_pic(pic_array, label_array, class_names, titel, colormap):
             raise ValueError('Picture should have 1 or 3 channels not'.format(pic_array.shape[3]))
         plt.xlabel(class_names[np.argmax(label_array[i])])
 
-    st = plt.suptitle(titel, fontsize=14)
+    st = plt.suptitle(title, fontsize=14)
     st.set_y(1)
     plt.tight_layout()
     plt.show()
 
 
-def dither_pic(pic_array, values_max_1=True):
+def dither_pic(pic_array, values_max_1):
     """ dither pictures """
     for channel in range(pic_array.shape[3]):
         for i, pic in enumerate(pic_array[:, :, :, channel]):

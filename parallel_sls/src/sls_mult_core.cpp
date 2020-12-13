@@ -5,7 +5,7 @@
 #define BATCH_SIZE 1024
 #define RESTART_ITER 600
 #define PRINT_EVERY 100
-#define VERBOSITY 1
+#define VERBOSITY 0 // for more output 1
 
 namespace multi_core {
 
@@ -91,7 +91,7 @@ namespace multi_core {
                       const float min_prob,                 // Not decay below this threshold
                       const bool zero_init                  // Wether to go bigger steps in case of no sucess
     ) {
-        /*
+
         std::cout << std::endl<< std::endl<< "++++++++++++++++++++++++++++++++++++++++"<< std::endl
                   << "Started SLS using "<< omp_get_max_threads () << " Threads with Params: " << std::endl
                   << "++++++++++++++++++++++++++++++++++++++++"<< std::endl
@@ -115,7 +115,7 @@ namespace multi_core {
                   << "Cold Restarts            " << batch << std::endl
                   << "Zero Init                " << zero_init << std::endl
                   << "++++++++++++++++++++++++++++++++++++++++"<< std::endl<<std::endl;
-        */
+
         //How many vars are needed for one instance
         uint32_t vars_per_vector = SDIV(features_n, sizeof(features_t) * 8);
 
@@ -137,24 +137,25 @@ namespace multi_core {
         // Initialize global vars
         uint32_t step = 0; // count interations
         uint32_t steps_unchanged = 0;         // checks iterations since last improvement
-        uint32_t wrongly_negative = 10000, wrongly_positive = 10000; // get score per class
+        // set to maximal value
+        uint32_t wrongly_negative = 4294967295,   wrongly_positive = 4294967295; // get score per class
         uint32_t score = calc_score(data_val, label_val, pos_neg, on_off, vector_n_val, vars_per_vector, clauses_n,
                                     wrongly_negative, wrongly_positive); // calc initial score
 
         uint32_t min_score = UINT32_MAX, min_unchanged = UINT32_MAX, min_wrongly_negative = 0, min_wrongly_positive = 0, min_score_since_last_printed = UINT32_MAX; // set all tracked scores to init values
         // std::cout << " score  before algorithm start:" << score  <<std::endl;
         // Stop if score is zero and max num of iterations not reached
-        while (score > 0.0001 &&
+        while (score > 0 &&
                step < maxSteps) {
 
                     // Print intermediate results if needed (different styles)
                     if(step % PRINT_EVERY == 1)
                             if(VERBOSITY) {
-                                    //std::cout << '\t'<< "step: " << step ;// << " Min Score "  << min_score << " Wrongly classified as negative " << min_wrongly_negative << " Wrongly classified as positive " << min_wrongly_positive; // << std::endl;
+                                    std::cout << '\t'<< "step: " << step ;// << " Min Score "  << min_score << " Wrongly classified as negative " << min_wrongly_negative << " Wrongly classified as positive " << min_wrongly_positive; // << std::endl;
                             }
                             else{
-                                    std::cout << min_score << " " << min_score_since_last_printed << std::endl;
-                                    min_score_since_last_printed = UINT32_MAX;
+                                    //std::cout << min_score << " " << min_score_since_last_printed << std::endl;
+                                    //min_score_since_last_printed = UINT32_MAX;
                             }
 
             // Calculate validation score
@@ -389,14 +390,7 @@ namespace multi_core {
         std::cout << '\t' << "step: " << step << " Min Score " << min_score << " Wrongly classified as negative "
                   << min_wrongly_negative << " Wrongly classified as positive " << min_wrongly_positive << std::endl;
         return min_score;
-        /*
 
-       // Get and print final result
-       auto test_score = calc_score(data_test, label_test, pos_neg_to_store, on_off_to_store, vector_n_test, vars_per_vector, clauses_n, wrongly_negative, wrongly_positive);
-       std::cout <<'\n'  << "Minimum val score " << min_score <<std::endl;
-       std::cout << " Test score " << test_score  <<std::endl;
-       std::cout <<" Iterations needed " << step <<std::endl;
-       std::cout <<std::endl ;*/
 
     }
 
@@ -478,10 +472,7 @@ namespace multi_core {
             uint32_t &wrongly_negative,
             uint32_t &wrongly_positive
     ) {
-        //std::cout << " reached score function: " << std::endl;
-        //std::cout << " vector_n :        " << vector_n << std::endl;
-        //std::cout << " vars_per_vector : " << vars_per_vector << std::endl;
-        //std::cout << " clauses_n :       " << clauses_n << std::endl;
+
         wrongly_negative = 0; // count wrongly classified
         wrongly_positive = 0; // count wrongly classified
 
@@ -706,7 +697,7 @@ namespace multi_core {
     }
 
     void random_dnf(
-            features_t *pos_neg,       // Positive or engative for formula
+            features_t *pos_neg,       // Positive or nengative for formula
             features_t *on_off,        // Mask for formula
             uint32_t dnf_s
     ) {
@@ -720,16 +711,10 @@ namespace multi_core {
         for (uint32_t i = 0; i < (uint32_t) dnf_s; i++) {
             pos_neg[i] = uniform_dist(geni);
             on_off[i] = uniform_dist(geni);
-            //    std::cout << unsigned(pos_neg[i]) << " , " ;
+
         }
 
-        /*  int len_pos_neg = int(sizeof(pos_neg) / sizeof(int));
-          std::cout << "len_pos_neg:" << len_pos_neg << std::endl;
-          for (int i = 0; i < len_pos_neg ;  i++)
-          {
-          std::cout << unsigned(pos_neg[i]);
-          }*/
-        // std::cout  << std::endl;
+
     }
 
     void zero_dnf(
@@ -805,11 +790,8 @@ namespace multi_core {
             prediction_label[pos_within_data] = covered_by_any_clause;
 
         }
-        //std::cout << "Which allocation has been accomplished how often" << clauses_n <<   std::endl;
-        //for (int i = 0; i < clauses_n ;  i++) {
-        //std::cout <<i << ": " << clause_covered[i] << ", ";
-        //}
-        std::cout  <<  std::endl;
+
+        //std::cout  <<  std::endl;
 
     }
 

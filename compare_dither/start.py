@@ -42,7 +42,7 @@ def get_paths(data_set_to_use):
     return path_to_use
 
 
-def get_network(data_set_to_use, path_to_use, convert_to_gray):
+def get_network(data_set_to_use,  path_to_store_model, convert_to_gray):
     # get network with two convolution and one dense layer at the end
     # net for dataset 'numbers' (MNIST) and 'fashion' (Fashion-MNIST)
     # have one colour channel as input writen in from [num_pic, pic_width, pic_height, num_colour_channel]
@@ -60,7 +60,8 @@ def get_network(data_set_to_use, path_to_use, convert_to_gray):
     # name under which the model is stored after training
     name_of_model = '{}_two_conv_2x2'.format(data_set_to_use)
     if data_set_to_use in 'mnist' or data_set_to_use in 'fashion':
-        network = model_two_convolution.network_two_convolution(path_to_use, name_of_model=name_of_model,
+        network = model_two_convolution.network_two_convolution(path_to_store_model = path_to_store_model,
+                                                                name_of_model=name_of_model,
                                                                 shape_of_kernel=shape_of_kernel,
                                                                 nr_training_itaration=2000,
                                                                 stride=stride_of_convolution,
@@ -77,7 +78,8 @@ def get_network(data_set_to_use, path_to_use, convert_to_gray):
             input_channels = 3
             input_shape = (None, 32, 32, 3)
         # get the neural net for datasets with three colour channel
-        network = model_two_convolution.network_two_convolution(path_to_use, name_of_model=name_of_model,
+        network = model_two_convolution.network_two_convolution(path_to_store_model = path_to_store_model,
+                                                                name_of_model=name_of_model,
                                                                 shape_of_kernel=shape_of_kernel,
                                                                 nr_training_itaration=2500,
                                                                 stride=stride_of_convolution,
@@ -159,8 +161,10 @@ if __name__ == '__main__':
 
             path_to_use = get_paths(data_set_to_use)
 
-            shape_of_kernel, stride_of_convolution, number_of_kernels, network = get_network(data_set_to_use, path_to_use,
-                                                                                                 convert_to_grey)
+
+            shape_of_kernel, stride_of_convolution, number_of_kernels, network = get_network(data_set_to_use=data_set_to_use,
+                                                                                             path_to_store_model=path_to_use['store_model'],
+                                                                                             convert_to_gray= convert_to_grey)
 
             # train nn with dithered dataset and evaluate it on dithered test set
             # write accuracy values into dither frame
