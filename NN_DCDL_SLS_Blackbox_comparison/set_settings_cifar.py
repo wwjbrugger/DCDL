@@ -7,28 +7,29 @@ def get_experimental_settings():
     # For the current working directory
     default_store_path = Path().absolute()
     # name of the experiment
-    setup_name = 'Arg_max_0'
+    setup_name = 'garbage'
 
     general_settings_dic = {
         # set seed None if you don't want to set an explicit seed
         # seed is not working at the moment
         # attention at the moment we can't set the seed for the SLS Algorithm
         'seed': None,
-        # timestamp to make the results unique
+        # Timestamp to make the results unique
         'timestr': time.strftime("%Y%m%d-%H%M%S"),
         # where to store settings and results
         'default_store_path': default_store_path,
+
         # name of the experiment
         'setup_name': setup_name,
 
-        # for numbers and fashion should the value be 55000
-        'size_train': 55000,
+        # for numbers and fashion should the value be 45000
+        'size_train': 45000,
 
         # size of validation set
         'size_valid': 5000,
 
         # shape of input pictures
-        'shape_of_input_pictures': [28, 28],
+        'shape_of_input_pictures': [32, 32],
 
         # If pictures should be dithered set values to 0 or 1 (see https://en.wikipedia.org/wiki/Dither)
         'dithering_used': True,
@@ -51,13 +52,13 @@ def get_experimental_settings():
         # how to convert [x,y] to one number switch meaning of label
         # e.g. arg_min([0,1]) = 0
         # e.g. arg_max([0, 1]) = 1
-        'arg_min_label': False
+        'arg_min_label': True
     }
 
     setting_dic_NN = {
         # name_of_model
         'name_of_model': 'two_conv_2x2_{}'.format(general_settings_dic['timestr']),
-        # number_train_iteration neural net
+        # number_train_iteration in neural net
         'number_train_iteration': 2000,
         # shape of kernel used in first convolution
         'shape_of_kernel_conv_1': (2, 2),
@@ -96,15 +97,12 @@ def get_experimental_settings():
         'logging': True,
 
     }
-
-    # input channel for numbers and fashion is always 1
-    # code is for consistency with cifar_set_settings
     if general_settings_dic['convert_to_grey']:
         # pic are cast to grey scale pic
         setting_dic_NN['input_channels'] = 1
     else:
         # pics have all three colour channel
-        setting_dic_NN['input_channels'] = 1
+        setting_dic_NN['input_channels'] = 3
 
     settings_dic_SLS_black_box_label = {
         # mode should be set in experiment

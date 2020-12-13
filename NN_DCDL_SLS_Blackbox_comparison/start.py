@@ -19,9 +19,9 @@ import extract_data_from_neural_net as extract_data_from_neural_net
 import set_settings_cifar as settings_cifar
 import set_settings_numbers_fashion as settings_number_fashion
 
-import NN_DCDL_SLS_Blackbox_comparision.Neural_net_model.NN_model as NN_model
-import NN_DCDL_SLS_Blackbox_comparision.SLS_black_box_model.SLS_black_box as SLS_black_box_model
-import NN_DCDL_SLS_Blackbox_comparision.DCDL_Model.DCDL as DCDL
+import NN_DCDL_SLS_Blackbox_comparison.Neural_net_model.NN_model as NN_model
+import NN_DCDL_SLS_Blackbox_comparison.SLS_black_box_model.SLS_black_box as SLS_black_box_model
+import NN_DCDL_SLS_Blackbox_comparison.DCDL_Model.DCDL as DCDL
 
 if __name__ == '__main__':
 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
         'settings' / \
         general_settings_dic['setup_name'] / \
         'label_{}'.format(general_settings_dic['one_against_all']) / \
-        'NN_DCDL_SLS_Blackbox_comparision{}.pkl'.format(
+        'NN_DCDL_SLS_Blackbox_comparison{}.pkl'.format(
             general_settings_dic['timestr'])
 
     # create parent folder of place to store used settings
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         general_settings_dic['setup_name'] / \
         general_settings_dic['data_set_to_use'] / \
         'label_{}'.format(general_settings_dic['one_against_all']) / \
-        'NN_DCDL_SLS_Blackbox_comparision{}.pkl'.format(
+        'NN_DCDL_SLS_Blackbox_comparison{}.pkl'.format(
             general_settings_dic['timestr'])
 
     path_to_store_pd_results = \
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         general_settings_dic['setup_name'] / \
         general_settings_dic['data_set_to_use'] / \
         'label_{}'.format(general_settings_dic['one_against_all']) / \
-        'NN_DCDL_SLS_Blackbox_comparision{}.pkl'.format(
+        'NN_DCDL_SLS_Blackbox_comparison{}.pkl'.format(
             general_settings_dic['timestr'])
     path_to_store_pd_results.parent.mkdir(parents=True, exist_ok=True)
     print('pandas results are stored in: ', path_to_store_pd_results)

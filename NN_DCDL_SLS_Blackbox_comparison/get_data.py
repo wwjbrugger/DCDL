@@ -6,7 +6,7 @@ import get_data_scripts_and_dither.cifar_dataset as cifar
 import get_data_scripts_and_dither.mnist_numbers as numbers
 
 import get_data_scripts_and_dither.dithering as dith
-import NN_DCDL_SLS_Blackbox_comparision.visualize as visualize
+import NN_DCDL_SLS_Blackbox_comparison.visualize as visualize
 
 
 def get_data(size_train, size_valid, dithering_used, one_against_all, number_class_to_predict,

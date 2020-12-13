@@ -9,9 +9,11 @@ Input in SLS are values in True/False Form
 
 
 # call SLS Implementation in C
+
 def rule_extraction_with_sls_test(train, train_label, val, val_label, test, test_label,
                                   number_of_disjunction_term, maximum_steps_in_SLS, kernel,
                                   p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob, zero_init):
+    # use SLS with a train, validation and test set
     # check input dimensions
     if np.ndim(train) != 2 or np.ndim(val) != 2 or np.ndim(test) != 2:
         raise ValueError('Input data are not flatten. Shape of input is {}, {}, {}'.
@@ -19,8 +21,7 @@ def rule_extraction_with_sls_test(train, train_label, val, val_label, test, test
     if np.ndim(train_label) != 1 or np.ndim(val_label) != 1 or np.ndim(test_label) != 1:
         raise ValueError('Label data are not flatten. Shape of input is {}, {}, {}'.
                          format(train_label.shape, val_label.shape, test_label.shape))
-    # use SLS with a train, validation and test set
-    # first_split, second_split = calculate_border_values_train_test_validation(data)
+
     # number of input variables is rounded up to a multiple of eight
     # C++ implementation stores formula in uint 8 variables
     num_of_features = (8 - train.shape[1]) % 8 + train.shape[1]
@@ -108,6 +109,7 @@ def rule_extraction_with_sls_val(train, train_label, val, val_label,
                                  p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob,
                                  zero_init
                                  ):
+    # use SLS with a train and validation set
     # check input dimensions
     if np.ndim(train) != 2 or np.ndim(val) != 2:
         raise ValueError('Input data are not flatten. Shape of input is {}, {}'.
@@ -198,6 +200,7 @@ def rule_extraction_with_sls(train, train_label,
                              kernel,
                              p_g1, p_g2, p_s, batch, cold_restart, decay, min_prob,
                              zero_init):
+    # use SLS with a set
     # check input dimensions
     if np.ndim(train) != 2 :
         raise ValueError('Input data are not flatten. Shape of input is {}'.format(train.shape))
@@ -299,35 +302,3 @@ def calc_prediction_in_C(data, label_shape, found_formula):
                                                  number_of_disjunction_term,
                                                  num_of_features)
     return space_label_bool_continguous
-
-# # helper methods for call SLS implementation in C
-# def pack_and_store_contiguous_array_for_sls(data, label, first_split, second_split):
-#     # pack data in C## compatible arrays
-#
-#     training_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(
-#         data[:first_split])
-#
-#     training_set_label_bool_continguous = np.ascontiguousarray(label[:first_split], dtype=np.bool)
-#
-#     validation_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(
-#         data[first_split:second_split])
-#
-#     validation_set_label_bool_continguous = np.ascontiguousarray(label[first_split:second_split],
-#                                                                  dtype=np.bool)
-#
-#     test_set_data_packed_continguous = data_wrapper.binary_to_packed_uint8_continguous(
-#         data[second_split:])
-#
-#     test_set_label_bool_continguous = np.ascontiguousarray(label[second_split:], dtype=np.bool)
-#
-#     return training_set_data_packed_continguous, training_set_label_bool_continguous \
-#         , validation_set_data_packed_continguous, validation_set_label_bool_continguous \
-#         , test_set_data_packed_continguous, test_set_label_bool_continguous
-
-#
-# def calculate_border_values_train_test_validation(data):
-#     # calculate border to split data in  in 2/3 train data , 1/6 validation data und 1/6 test data
-#     first_split = int(data.shape[0] * 2 / 3)
-#     second_split = int(data.shape[0] * 2 / 3) + int(
-#         (data.shape[0] - int(data.shape[0] * 2 / 3)) * 1 / 2)
-#     return first_split, second_split

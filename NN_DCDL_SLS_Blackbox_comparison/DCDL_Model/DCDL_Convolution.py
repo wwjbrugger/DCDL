@@ -3,7 +3,7 @@ import numpy as np
 
 os.environ["BLD_PATH"] = "../parallel_sls/bld/Parallel_SLS_shared"
 import SLS_Algorithm as SLS
-import NN_DCDL_SLS_Blackbox_comparision.get_data as get_data
+import NN_DCDL_SLS_Blackbox_comparison.get_data as get_data
 
 
 class Convolution:

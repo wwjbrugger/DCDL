@@ -4,7 +4,7 @@
 Model for the experiment visualize_rules_found is a single convolution layer of the same size as the input image.  
  
 ### two_conv_block_model
-Model for the experiment comparision_DCDL_vs_SLS is a network of two convolution layers and one dense layer. 
+Model for the experiment compare_dither is a network of two convolution layers and one dense layer. 
 
 ### boolean model 
 Data structure to store and display the logical formulas extracted by the SLS algorithm. 

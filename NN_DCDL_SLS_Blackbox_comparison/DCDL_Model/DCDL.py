@@ -1,10 +1,10 @@
 import copy
 import numpy as np
 
-import NN_DCDL_SLS_Blackbox_comparision.DCDL_Model.DCDL_Dense as DCDL_Dense
-import NN_DCDL_SLS_Blackbox_comparision.DCDL_Model.DCDL_Convolution as DCDL_Convolution
-import NN_DCDL_SLS_Blackbox_comparision.DCDL_Model.DCDL_Max_Pooling as DCDL_Max_Pooling
-import NN_DCDL_SLS_Blackbox_comparision.get_data as get_data
+import NN_DCDL_SLS_Blackbox_comparison.DCDL_Model.DCDL_Dense as DCDL_Dense
+import NN_DCDL_SLS_Blackbox_comparison.DCDL_Model.DCDL_Convolution as DCDL_Convolution
+import NN_DCDL_SLS_Blackbox_comparison.DCDL_Model.DCDL_Max_Pooling as DCDL_Max_Pooling
+import NN_DCDL_SLS_Blackbox_comparison.get_data as get_data
 class DCDL:
     def __init__(self, operations, arg_min_label ):
         if not isinstance(operations, dict):
