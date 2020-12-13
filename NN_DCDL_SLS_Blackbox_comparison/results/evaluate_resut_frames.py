@@ -13,6 +13,7 @@ from scipy.stats import stats
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import pickle as pk
+import seaborn as sns; sns.set_theme()
 
 import NN_DCDL_SLS_Blackbox_comparison.visualize as visualize
 
@@ -35,7 +36,7 @@ def get_analyze_settings():
         # name of rows in data_set
         'row_names': ['Training set', 'Validation set', 'Test set', 'setup'],
         # which statistics to use
-        'statistics_to_use': ['students_t_test'],
+        'statistics_to_use': ['students_t_test_ind','students_t_test_rel', 'kruskal_wallis', 'friedmanchisquare'],
         # datasets used mnist and numbers are the same dataset
         'datasets': ['numbers', 'fashion', 'cifar']
     }
@@ -91,7 +92,9 @@ def get_result_frames(analyze_settings_dic):
 
 
 # ------------------------------------------ statistical tests ---------------------------------
-def accuracy_significance_methods(result_frames_dic, statistics_to_use, approaches,  save_path):
+
+
+def accuracy_significance_methods(result_frames_dic, statistics_to_use, approaches, save_path):
     # calculate accuracy significance between approaches
     for experiment, experiment_dics in result_frames_dic.items():
         # iterate through experiments
@@ -101,12 +104,27 @@ def accuracy_significance_methods(result_frames_dic, statistics_to_use, approach
                 dataset=dataset,
                 dataset_dic=dataset_dic,
                 approaches=approaches)
-            if 'students_t_test' in statistics_to_use:
-                student_t_test(approaches=approaches,
+            if 'students_t_test_ind' in statistics_to_use:
+                student_t_test_ind(approaches=approaches,
                                accuracy_values=accuracy_values,
-                               save_path= save_path / experiment / dataset
+                               save_path=save_path / experiment / dataset
                                )
-
+            if 'students_t_test_rel' in statistics_to_use:
+                student_t_test_rel(approaches=approaches,
+                                   accuracy_values=accuracy_values,
+                                   save_path=save_path / experiment / dataset
+                                   )
+            if 'kruskal_wallis' in statistics_to_use:
+                kruskal_wallis_test(
+                    approaches=approaches,
+                    accuracy_values=accuracy_values,
+                    save_path=save_path / experiment / dataset)
+            if 'friedmanchisquare' in statistics_to_use:
+                friedmanchisquare_test(
+                    approaches=approaches,
+                    accuracy_values=accuracy_values,
+                    save_path=save_path / experiment / dataset
+                )
 
 
 def get_accuracy_values(dataset, dataset_dic, approaches):
@@ -123,29 +141,118 @@ def get_accuracy_values(dataset, dataset_dic, approaches):
                 accuracy_frame.at[row_name, approach] = result_frame.at['Test set', approach]
     return accuracy_frame
 
-def student_t_test(approaches, accuracy_values, save_path):
-    # calculate the two sided students t-test from scipy
+
+def student_t_test_ind(approaches, accuracy_values, save_path):
+    # calculate the two sided unpaired students t-test from scipy
     # it compare all approaches with each other
-    student_t_test_frame = pd.DataFrame()
+    #Calculate the T-test for the means of two independent samples of scores
+    student_t_test_ind_frame = pd.DataFrame()
     for i in range(len(approaches)):
         for j in range(i, len(approaches), 1):
+            # iterate through approaches
             approach_i = approaches[i]
             approach_j = approaches[j]
-            values_i = accuracy_values.loc[:,approach_i]
+            values_i = accuracy_values.loc[:, approach_i]
             values_j = accuracy_values.loc[:, approach_j]
             t_statistic, two_tailed_p_test = stats.ttest_ind(values_i, values_j)
-            student_t_test_frame.at [approach_i, approach_j]= two_tailed_p_test
+            student_t_test_ind_frame.at[approach_i, approach_j] = two_tailed_p_test
 
-            # save result of student-t-test for dataset as html file
-        with pd.option_context('display.precision', 2):
-            html = student_t_test_frame.style.applymap(visualize.mark_small_values).render()
+    save_path.mkdir(parents=True, exist_ok=True)
+    fig = plt.figure(figsize=(4, 2))
+    ax = fig.subplots()
+    ax = sns.heatmap(student_t_test_ind_frame, ax=ax, annot=True, fmt="0.3f", cmap="autumn", vmin=0, vmax=0.05)
+    plt.xticks(rotation=45)
+    fig.canvas.start_event_loop(sys.float_info.min)
+    path = save_path / 'students-test_scipy_ind.png'
+    fig.savefig(path, bbox_inches='tight', dpi=100)
+    plt.close(fig)
+
+
+def student_t_test_rel(approaches, accuracy_values, save_path):
+    # calculate the two sided paired students t-test from scipy
+    # it compare all approaches with each other
+    student_t_test_rel_frame = pd.DataFrame()
+    for i in range(len(approaches)):
+        for j in range(i, len(approaches), 1):
+            # iterate through approaches
+            approach_i = approaches[i]
+            approach_j = approaches[j]
+            values_i = accuracy_values.loc[:, approach_i]
+            values_j = accuracy_values.loc[:, approach_j]
+            t_statistic, two_tailed_p_test = stats.ttest_rel(values_i, values_j)
+            student_t_test_rel_frame.at[approach_i, approach_j] = two_tailed_p_test
+
+
         save_path.mkdir(parents=True, exist_ok=True)
-        path =save_path / 'students-test_scipy.html'
-        with open(path, "w") as f:
-            f.write(html)
+        fig = plt.figure(figsize=(4, 2))
+        ax = fig.subplots()
+        ax = sns.heatmap(student_t_test_rel_frame, ax=ax, annot=True, fmt="0.3f", cmap="autumn", vmin=0, vmax=0.05)
+        plt.xticks(rotation=45)
+        fig.canvas.start_event_loop(sys.float_info.min)
+        path = save_path / 'students-test_scipy_rel.png'
+        fig.savefig(path, bbox_inches='tight', dpi=100)
+        plt.close(fig)
+
+def kruskal_wallis_test(approaches, accuracy_values, save_path):
+    # The Kruskal-Wallis H-test tests the null hypothesis that the population median of all of the groups are equal.
+    # It is a non-parametric version of ANOVA.
+    # The test works on 2 or more independent samples, which may have different sizes.
+    # Note that rejecting the null hypothesis does not indicate which of the groups differs.
+    # Post hoc comparisons between groups are required to determine which groups are different.
+
+    kruskal_wallis_test_frame = pd.DataFrame()
+    # perform kruskal wallis test
+    # returns (The Kruskal-Wallis H statistic corrected for ties,
+    # The p-value for the test using the assumption that H has a chi square distribution)
+    # depack values from accuracy frame
+    input_kruskal = [accuracy_values.loc[:,approach].to_numpy() for approach in approaches]
+    #  the syntax *expression appears in the function call, expression must evaluate to an iterable.
+    #  Elements from this iterable are treated as if they were additional positional arguments
+    statistic, p_value = stats.kruskal(*input_kruskal)
+    kruskal_wallis_test_frame.at['result', 'statistic'] = statistic
+    kruskal_wallis_test_frame.at['result', 'p-value'] = p_value
 
 
-            # ----------------------------------------- visualize results -----------------------------------
+    save_path.mkdir(parents=True, exist_ok=True)
+    fig = plt.figure(figsize=(4, 2))
+    ax = fig.subplots()
+    ax = sns.heatmap(kruskal_wallis_test_frame, ax=ax, annot=True, fmt="0.3f", cmap="autumn", vmin=0, vmax=0.05)
+    plt.xticks(rotation=45)
+    fig.canvas.start_event_loop(sys.float_info.min)
+    path = save_path / 'kruskal_wallis_test.png'
+    fig.savefig(path, bbox_inches='tight', dpi=100)
+    plt.close(fig)
+
+def friedmanchisquare_test(approaches, accuracy_values, save_path):
+    # The Friedman test tests the null hypothesis that repeated measurements
+    # of the same individuals have the same distribution.
+    # It is often used to test for consistency among measurements obtained in different ways.
+    # For example, if two measurement techniques are used on the same set of individuals,
+    # the Friedman test can be used to determine if the two measurement techniques are consistent
+
+    friedmanchisquare_test_frame = pd.DataFrame()
+    # returns
+    # The associated p-value assuming that the test statistic has a chi squared distribution.
+    # depack values from accuracy frame
+    input_friedmanchisquare = [accuracy_values.loc[:, approach].to_numpy() for approach in approaches]
+    #  the syntax *expression appears in the function call, expression must evaluate to an iterable.
+    #  Elements from this iterable are treated as if they were additional positional arguments
+    statistic, p_value = stats.friedmanchisquare(*input_friedmanchisquare)
+    friedmanchisquare_test_frame.at['result', 'statistic'] = statistic
+    friedmanchisquare_test_frame.at['result', 'p-value'] = p_value
+
+
+    save_path.mkdir(parents=True, exist_ok=True)
+    fig = plt.figure(figsize=(4, 2))
+    ax = fig.subplots()
+    ax = sns.heatmap(friedmanchisquare_test_frame, ax=ax, annot=True, fmt="0.3f", cmap="autumn", vmin=0, vmax=0.05)
+    plt.xticks(rotation=45)
+    fig.canvas.start_event_loop(sys.float_info.min)
+    path = save_path / 'friedmanchisquare_test.png'
+    fig.savefig(path, bbox_inches='tight', dpi=100)
+    plt.close(fig)
+
+        # ----------------------------------------- visualize results -----------------------------------
 
 
 def average_accuracy_on_test_data_all_datasets(result_frames_dic, save_path):
@@ -215,7 +322,7 @@ def average_accuracy_on_test_data_single_dataset(dataset_dic, title, ax):
         ax_out=ax,
         save_path=False,
         plot_line=False,
-        xticks_rotation=0#-90
+        xticks_rotation=0  # -90
 
     )
 
@@ -287,16 +394,16 @@ if __name__ == '__main__':
         analyze_settings_dic=analyze_settings_dic
     )
 
-    average_accuracy_on_test_data_all_datasets(
-        result_frames_dic=result_frames_dic,
-        save_path=analyze_settings_dic['save_path_visualization']
-    )
-
-    similarity_difference_DCDL_SLS_prediction(
-        analyze_settings_dic=analyze_settings_dic,
-        title='',
-        save_path=analyze_settings_dic['save_path_visualization'],
-    )
+    # average_accuracy_on_test_data_all_datasets(
+    #     result_frames_dic=result_frames_dic,
+    #     save_path=analyze_settings_dic['save_path_visualization']
+    # )
+    #
+    # similarity_difference_DCDL_SLS_prediction(
+    #     analyze_settings_dic=analyze_settings_dic,
+    #     title='',
+    #     save_path=analyze_settings_dic['save_path_visualization'],
+    # )
 
     accuracy_significance_methods(
         result_frames_dic=result_frames_dic,
