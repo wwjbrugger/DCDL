@@ -7,7 +7,9 @@ import numpy as np
 
 class Dense:
     def __init__(self, properties):
+        # place to save found logical formula
         self.found_formula = None
+        # dic with properties of dense layer
         self.properties = properties
         # saves which form the output has to be e.g. [None, 14,14,8}
         # None has to be set to the number of input example
@@ -15,21 +17,26 @@ class Dense:
 
     def preprocess(self, data, label):
         if label is not None:
+            # original label is given. This is the case for training
             self.output_shape = list(label.shape)
             self.output_shape[0] = data.shape[0]
         else:
+            # no label is given this is the case for the prediction mode
             self.output_shape[0] = data.shape[0]
 
+        # flat data
         data_flat = data.reshape((data.shape[0], - 1))
         return data_flat, label
 
 
 
     def train(self, train_data, train_label, validation_data, validation_label):
+        # flatten data and get expected output channel
         train, label = self.preprocess(data=train_data,
                                        label=train_label)
 
         if self.properties['SLS_dic']['mode'] in 'rule_extraction_with_sls':
+            # use SLS algorithm only with a train set
             self.found_formula = SLS.rule_extraction_with_sls(
                 train=train,
                 train_label=label,
@@ -46,6 +53,7 @@ class Dense:
                 zero_init=self.properties['SLS_dic']['zero_init']
             )
         elif self.properties['SLS_dic']['mode'] in 'rule_extraction_with_sls_val':
+            # use SLS algorithm with train and validation set
             val, val_label = self.preprocess(data=validation_data,
                                              label=validation_label)
             self.found_formula = SLS.rule_extraction_with_sls_val(
@@ -75,6 +83,7 @@ class Dense:
         prediction = SLS.calc_prediction_in_C(data=data_flat,
                                               label_shape=output_shape,
                                               found_formula=self.found_formula)
+        # acc is calculated by DCDL class
         acc = None
         return prediction, acc
 

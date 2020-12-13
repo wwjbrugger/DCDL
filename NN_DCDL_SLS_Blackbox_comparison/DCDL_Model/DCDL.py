@@ -75,11 +75,11 @@ class DCDL:
 
 
     def prediction(self, data, original_label):
-
+        # use trained DCDL model for making a prediction
         data, label = self.preprocess(data, original_label)
         num_input = data.shape[0]
 
-
+        # get operation in the right order
         order_index = list(self.operations.keys())
         order_index.sort()
 
@@ -87,9 +87,10 @@ class DCDL:
 
         # iterate through dic
         for key in order_index:
-            # get operation to train
+            # get operation to make prediction
             operation_dic = self.operations[key]
             operation = operation_dic['operation']
+            # set prediction of the last layer as input in the next
             current_data, _  = operation.prediction(data=current_data,
                                                     original_label = None)
         # last prediction is prediction of DCDL
@@ -102,7 +103,9 @@ class DCDL:
 
 
     def preprocess(self, data, label):
+        # cast one-hot-label to a single label
         if self.arg_min_label:
+            # use arg_min function to cast to a single label
             label_flat = np.argmin(label, axis=1)
         else:
             # one hot label should be casted with arg_max to a single number

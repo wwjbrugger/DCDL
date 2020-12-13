@@ -7,19 +7,26 @@ import NN_DCDL_SLS_Blackbox_comparison.get_data as get_data
 
 
 class Convolution:
+    # class to approximate a convolutional layer in the neural net
     def __init__(self, properties):
+        # place to save found logical formula
         self.found_formula_list = []
+        # dic with properties of convolution
         self.properties = properties
+        # shape of output
         self.output_shape = None
 
     def preprocess(self, data, label):
+        # preprocess input to perform convolution
         if label is not None :
+            # original label is given. This is the case for training
             self.output_shape = list(label.shape)
             self.output_shape[0] =  data.shape[0]
         else:
+            # no label is given this is the case for the prediction mode
             self.output_shape[0] = data.shape[0]
 
-        ## get subsamples of data as they would be under the kernel in a convolution operation
+        ## get subsamples of data as they would be underthe kernel in a convolution operation
         data_under_kernel = self.data_in_kernel(arr=data,
                                                 stepsize=self.properties['stride'],
                                                 width=self.properties['kernel'][0])
@@ -62,12 +69,16 @@ class Convolution:
         return ((0, 0), (int(pad_top), int(pad_bottom)), (int(pad_left), int(pad_right)), (0, 0))
 
     def train(self, train_data, train_label, validation_data, validation_label):
+        # decomposes input image into smaller subimages as they are under the convolution kernel
         train, label_all_channel = self.preprocess(data=train_data,
                                                    label=train_label)
         for channel in range(self.properties['num_kernel']):
+            # iterate through channels of the output
             print('channel: {}'.format(channel))
+            # get labels of the current channel
             label_one_channel = label_all_channel[:, :, :, channel].flatten()
             if self.properties['SLS_dic']['mode'] in 'rule_extraction_with_sls':
+                # use SLS algorithm only with a train set
                 found_formula = SLS.rule_extraction_with_sls(
                     train=train,
                     train_label=label_one_channel,
@@ -84,6 +95,7 @@ class Convolution:
                     zero_init=self.properties['SLS_dic']['zero_init']
                 )
             elif self.properties['SLS_dic']['mode'] in 'rule_extraction_with_sls_val':
+                # use SLS algorithm with train and validation set
                 val, val_label_all_channel = self.preprocess(data=validation_data,
                                                              label=validation_label)
                 val_label_one_chanel = val_label_all_channel[:, :, :, channel].flatten()
@@ -104,13 +116,16 @@ class Convolution:
                     min_prob=self.properties['SLS_dic']['min_prob'],
                     zero_init=self.properties['SLS_dic']['zero_init']
                 )
+            # add formula for current channel to all other formulas
             self.found_formula_list.append(found_formula)
 
     def prediction(self, data, original_label):
-
+        # decomposes input image into smaller subimages as they are under the convolution kernel
         data_flatten, label = self.preprocess(data=data,
                                               label=original_label)
+
         output_shape = self.output_shape
+        # output will have as many examples as the input.
         output_shape_one_channel = output_shape[:3]
 
 
@@ -119,12 +134,15 @@ class Convolution:
                               dtype=np.bool)
 
         for channel in range(self.properties['num_kernel']):
+            # iterate through channels and get formula for current channel
             found_formula = self.found_formula_list[channel]
             flatten_label_shape = [output_shape[0] * output_shape[1] * output_shape[2]]
             prediction_one_channel = SLS.calc_prediction_in_C(data=data_flatten,
                                                               label_shape=flatten_label_shape,
                                                               found_formula=found_formula)
-
+            # cast prediction of one channel to output shape
             prediction[:, :, :, channel] = np.reshape(prediction_one_channel, output_shape_one_channel)
+
+        # acc is calculated by DCDL class
         acc = None
         return prediction, acc
