@@ -30,13 +30,21 @@ def sls_convolution(training_set, label_set, kernel_to_approximate, number_of_di
             label=label_set,
             channel_label=channel)
 
-        # get formula for SLS blackbox approach
-        found_formula = \
-            SLS.rule_extraction_with_sls_without_validation(data=training_set_flat,
-                                                            label=label_set_flat,
-                                                            number_of_disjunction_term=number_of_disjunction_term_in_SLS,
-                                                            maximum_steps_in_SLS=maximum_steps_in_SLS,
-                                                            kernel = init_with_kernel)
+        found_formula = SLS.rule_extraction_with_sls(
+            train=training_set_flat,
+            train_label=label_set_flat,
+            number_of_disjunction_term=number_of_disjunction_term_in_SLS,
+            maximum_steps_in_SLS=maximum_steps_in_SLS,
+            kernel=init_with_kernel,
+            p_g1=0.5,
+            p_g2=0.5,
+            p_s=0.5,
+            batch=True,
+            cold_restart=True,
+            decay=0,
+            min_prob=0,
+            zero_init=False
+        )
         kernel_approximation.append(found_formula)
 
     return kernel_approximation
