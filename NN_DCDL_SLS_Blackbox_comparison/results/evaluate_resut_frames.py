@@ -1,19 +1,19 @@
-from collections import defaultdict
-from os import listdir
-from os.path import isfile, join
-import pickle
-from pathlib import Path
-
-import pandas as pd
+import pickle as pk
 import statistics
 import sys
-import numpy as np
-from scipy.stats import stats
+from pathlib import Path
 
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import pickle as pk
-import seaborn as sns; sns.set_theme()
+import numpy as np
+import pandas as pd
+import seaborn as sns;
+from scipy.stats import stats
+from scipy.stats import t
+
+from math import sqrt
+from statistics import stdev
+
+sns.set_theme()
 
 import NN_DCDL_SLS_Blackbox_comparison.visualize as visualize
 
@@ -36,9 +36,23 @@ def get_analyze_settings():
         # name of rows in data_set
         'row_names': ['Training set', 'Validation set', 'Test set', 'setup'],
         # which statistics to use
-        'statistics_to_use': ['students_t_test_ind','students_t_test_rel', 'kruskal_wallis', 'friedmanchisquare'],
+        'statistics_to_use': ['students_t_test_ind', 'students_t_test_rel', 'corrected_dependent_ttest',
+                              'kruskal_wallis', 'friedmanchisquare', 'mannwhitneyu'],
         # datasets used mnist and numbers are the same dataset
-        'datasets': ['numbers', 'fashion', 'cifar']
+        'datasets': ['numbers', 'fashion', 'cifar'],
+        # length of train sets
+        'len_train_set': {'numbers': 12000,
+                          # each label is represented with 10 % of all labels we have 60 000 samples in total
+                          'fashion': 12000,
+                          'cifar': 10000},
+        # each label is represented with 10 % of all labels we have 50 000 samples in total
+
+        'len_test_set': {'numbers': 2000,
+                         # each label is represented with 10 % of all labels we have 10 000 samples in total
+                         'fashion': 2000,
+                         'cifar': 2000} ,   # each label is represented with 10 % of all labels we have 50 000 samples in total
+        # alpha value for corrected corrected_dependent_ttest
+        'alpha': 0.05
     }
     return analyze_settings_dic
 
@@ -94,7 +108,8 @@ def get_result_frames(analyze_settings_dic):
 # ------------------------------------------ statistical tests ---------------------------------
 
 
-def accuracy_significance_methods(result_frames_dic, statistics_to_use, approaches, save_path):
+def accuracy_significance_methods(result_frames_dic, statistics_to_use, approaches, save_path, len_test_set,
+                                  len_train_set, alpha):
     # calculate accuracy significance between approaches
     for experiment, experiment_dics in result_frames_dic.items():
         # iterate through experiments
@@ -106,9 +121,9 @@ def accuracy_significance_methods(result_frames_dic, statistics_to_use, approach
                 approaches=approaches)
             if 'students_t_test_ind' in statistics_to_use:
                 student_t_test_ind(approaches=approaches,
-                               accuracy_values=accuracy_values,
-                               save_path=save_path / experiment / dataset
-                               )
+                                   accuracy_values=accuracy_values,
+                                   save_path=save_path / experiment / dataset
+                                   )
             if 'students_t_test_rel' in statistics_to_use:
                 student_t_test_rel(approaches=approaches,
                                    accuracy_values=accuracy_values,
@@ -124,6 +139,21 @@ def accuracy_significance_methods(result_frames_dic, statistics_to_use, approach
                     approaches=approaches,
                     accuracy_values=accuracy_values,
                     save_path=save_path / experiment / dataset
+                )
+            if 'mannwhitneyu' in statistics_to_use:
+                mannwhitneyu_test(
+                    approaches=approaches,
+                    accuracy_values=accuracy_values,
+                    save_path=save_path / experiment / dataset
+                )
+            if 'corrected_dependent_ttest' in statistics_to_use:
+                corrected_dependent_ttest(
+                    approaches=approaches,
+                    accuracy_values=accuracy_values,
+                    save_path=save_path/ experiment / dataset,
+                    len_train_set=len_train_set[dataset],
+                    len_test_set=len_test_set[dataset],
+                    alpha=alpha
                 )
 
 
@@ -145,7 +175,7 @@ def get_accuracy_values(dataset, dataset_dic, approaches):
 def student_t_test_ind(approaches, accuracy_values, save_path):
     # calculate the two sided unpaired students t-test from scipy
     # it compare all approaches with each other
-    #Calculate the T-test for the means of two independent samples of scores
+    # calculate the T-test for the means of two independent samples of scores
     student_t_test_ind_frame = pd.DataFrame()
     for i in range(len(approaches)):
         for j in range(i, len(approaches), 1):
@@ -171,6 +201,7 @@ def student_t_test_ind(approaches, accuracy_values, save_path):
 def student_t_test_rel(approaches, accuracy_values, save_path):
     # calculate the two sided paired students t-test from scipy
     # it compare all approaches with each other
+    # returns nan for same dataset necause standard deviation of the differences between all pairs stands in divider
     student_t_test_rel_frame = pd.DataFrame()
     for i in range(len(approaches)):
         for j in range(i, len(approaches), 1):
@@ -182,7 +213,6 @@ def student_t_test_rel(approaches, accuracy_values, save_path):
             t_statistic, two_tailed_p_test = stats.ttest_rel(values_i, values_j)
             student_t_test_rel_frame.at[approach_i, approach_j] = two_tailed_p_test
 
-
         save_path.mkdir(parents=True, exist_ok=True)
         fig = plt.figure(figsize=(4, 2))
         ax = fig.subplots()
@@ -192,6 +222,7 @@ def student_t_test_rel(approaches, accuracy_values, save_path):
         path = save_path / 'students-test_scipy_rel.png'
         fig.savefig(path, bbox_inches='tight', dpi=100)
         plt.close(fig)
+
 
 def kruskal_wallis_test(approaches, accuracy_values, save_path):
     # The Kruskal-Wallis H-test tests the null hypothesis that the population median of all of the groups are equal.
@@ -205,13 +236,12 @@ def kruskal_wallis_test(approaches, accuracy_values, save_path):
     # returns (The Kruskal-Wallis H statistic corrected for ties,
     # The p-value for the test using the assumption that H has a chi square distribution)
     # depack values from accuracy frame
-    input_kruskal = [accuracy_values.loc[:,approach].to_numpy() for approach in approaches]
+    input_kruskal = [accuracy_values.loc[:, approach].to_numpy() for approach in approaches]
     #  the syntax *expression appears in the function call, expression must evaluate to an iterable.
     #  Elements from this iterable are treated as if they were additional positional arguments
     statistic, p_value = stats.kruskal(*input_kruskal)
     kruskal_wallis_test_frame.at['result', 'statistic'] = statistic
     kruskal_wallis_test_frame.at['result', 'p-value'] = p_value
-
 
     save_path.mkdir(parents=True, exist_ok=True)
     fig = plt.figure(figsize=(4, 2))
@@ -222,6 +252,7 @@ def kruskal_wallis_test(approaches, accuracy_values, save_path):
     path = save_path / 'kruskal_wallis_test.png'
     fig.savefig(path, bbox_inches='tight', dpi=100)
     plt.close(fig)
+
 
 def friedmanchisquare_test(approaches, accuracy_values, save_path):
     # The Friedman test tests the null hypothesis that repeated measurements
@@ -241,7 +272,6 @@ def friedmanchisquare_test(approaches, accuracy_values, save_path):
     friedmanchisquare_test_frame.at['result', 'statistic'] = statistic
     friedmanchisquare_test_frame.at['result', 'p-value'] = p_value
 
-
     save_path.mkdir(parents=True, exist_ok=True)
     fig = plt.figure(figsize=(4, 2))
     ax = fig.subplots()
@@ -252,7 +282,86 @@ def friedmanchisquare_test(approaches, accuracy_values, save_path):
     fig.savefig(path, bbox_inches='tight', dpi=100)
     plt.close(fig)
 
-        # ----------------------------------------- visualize results -----------------------------------
+
+def mannwhitneyu_test(approaches, accuracy_values, save_path):
+    # Compute the Mann-Whitney rank test on samples x and y.
+    mannwhitneyu_test_frame = pd.DataFrame()
+    for i in range(len(approaches)):
+        for j in range(i, len(approaches), 1):
+            # iterate through approaches
+            approach_i = approaches[i]
+            approach_j = approaches[j]
+            values_i = accuracy_values.loc[:, approach_i]
+            values_j = accuracy_values.loc[:, approach_j]
+            t_statistic, two_tailed_p_test = stats.mannwhitneyu(values_i, values_j)
+            mannwhitneyu_test_frame.at[approach_i, approach_j] = two_tailed_p_test
+
+    save_path.mkdir(parents=True, exist_ok=True)
+    fig = plt.figure(figsize=(4, 2))
+    ax = fig.subplots()
+    ax = sns.heatmap(mannwhitneyu_test_frame, ax=ax, annot=True, fmt="0.3f", cmap="autumn", vmin=0, vmax=0.05)
+    plt.xticks(rotation=45)
+    fig.canvas.start_event_loop(sys.float_info.min)
+    path = save_path / 'mannwhitneyu.png'
+    fig.savefig(path, bbox_inches='tight', dpi=100)
+    plt.close(fig)
+
+
+def corrected_dependent_ttest(approaches, accuracy_values, save_path, len_train_set, len_test_set, alpha):
+    # calculate the two sided unpaired students t-test from scipy
+    # it compare all approaches with each other
+    # calculate the T-test for the means of two independent samples of scores
+    corrected_dependent_ttest_frame = pd.DataFrame()
+    for i in range(len(approaches)):
+        for j in range(i, len(approaches), 1):
+            # iterate through approaches
+            approach_i = approaches[i]
+            approach_j = approaches[j]
+            values_i = accuracy_values.loc[:, approach_i]
+            values_j = accuracy_values.loc[:, approach_j]
+            t_statistic, df, cv, two_tailed_p_test = corr_dep_ttest(
+                data1=values_i,
+                data2=values_j,
+                len_train_set=len_train_set,
+                len_test_set=len_test_set,
+                alpha=alpha)
+
+            corrected_dependent_ttest_frame.at[approach_i, approach_j] = two_tailed_p_test
+
+    save_path.mkdir(parents=True, exist_ok=True)
+    fig = plt.figure(figsize=(4, 2))
+    ax = fig.subplots()
+    ax = sns.heatmap(corrected_dependent_ttest_frame, ax=ax, annot=True, fmt="0.3f", cmap="autumn", vmin=0, vmax=0.05)
+    plt.xticks(rotation=45)
+    fig.canvas.start_event_loop(sys.float_info.min)
+    path = save_path / 'corrected_dependent_ttest.png'
+    fig.savefig(path, bbox_inches='tight', dpi=100)
+    plt.close(fig)
+
+
+def corr_dep_ttest(data1, data2, len_train_set, len_test_set, alpha):
+    # Implementation of Corrected resampled t -test statistic
+    # based on https://gist.github.com/jensdebruijn/13e8eeda85eb8644ac2a4ac4c3b8e732
+    # confidenz level 1 - alpha
+    # alpha = 0.05
+    n = len(data1)
+    differences = [(data1[i] - data2[i]) for i in range(n)]
+    if np.sum(differences) == 0:
+        return np.nan, np.nan, np.nan, np.nan
+    sd = stdev(differences)
+    divisor = 1 / n * sum(differences)
+    test_training_ratio = len_test_set / len_train_set
+    denominator = sqrt(1 / n + test_training_ratio) * sd
+    t_stat = divisor / denominator
+    # degrees of freedom
+    df = n - 1
+    # calculate the critical value
+    cv = t.ppf(1.0 - alpha, df)
+    # calculate the p-value
+    p = (1.0 - t.cdf(abs(t_stat), df)) * 2.0
+    # return everything
+    return t_stat, df, cv, p
+    # ----------------------------------------- visualize results -----------------------------------
 
 
 def average_accuracy_on_test_data_all_datasets(result_frames_dic, save_path):
@@ -394,20 +503,23 @@ if __name__ == '__main__':
         analyze_settings_dic=analyze_settings_dic
     )
 
-    # average_accuracy_on_test_data_all_datasets(
-    #     result_frames_dic=result_frames_dic,
-    #     save_path=analyze_settings_dic['save_path_visualization']
-    # )
-    #
-    # similarity_difference_DCDL_SLS_prediction(
-    #     analyze_settings_dic=analyze_settings_dic,
-    #     title='',
-    #     save_path=analyze_settings_dic['save_path_visualization'],
-    # )
+    average_accuracy_on_test_data_all_datasets(
+        result_frames_dic=result_frames_dic,
+        save_path=analyze_settings_dic['save_path_visualization']
+    )
+
+    similarity_difference_DCDL_SLS_prediction(
+        analyze_settings_dic=analyze_settings_dic,
+        title='',
+        save_path=analyze_settings_dic['save_path_visualization'],
+    )
 
     accuracy_significance_methods(
         result_frames_dic=result_frames_dic,
         statistics_to_use=analyze_settings_dic['statistics_to_use'],
         approaches=analyze_settings_dic['approaches'],
-        save_path=analyze_settings_dic['save_path_visualization']
+        save_path=analyze_settings_dic['save_path_visualization'],
+        len_train_set=analyze_settings_dic['len_train_set'],
+        len_test_set=analyze_settings_dic['len_test_set'],
+        alpha=analyze_settings_dic['alpha']
     )
