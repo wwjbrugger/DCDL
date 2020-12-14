@@ -427,7 +427,7 @@ def average_accuracy_on_test_data_single_dataset(dataset_dic, title, ax):
         title=title,
         x_axis_title="",
         y_axis_tile='accuracy [%]',
-        fix_y_axis=False,
+        fix_y_axis=True,
         ax_out=ax,
         save_path=False,
         plot_line=False,
@@ -468,6 +468,7 @@ def similarity_difference_DCDL_SLS_prediction(analyze_settings_dic, title, save_
             y_stdr.append(stdr)
         # in graph we want to use 'mnist' instead of 'numbers
         datasets = [dataset.replace('numbers', 'mnist') for dataset in datasets]
+
         # show similarity difference DCDL SLS_prediction for one experiment
         path = save_path / experiment / 'similarity_difference_DCDL_SLS_prediction.png'
         visualize.graph_with_error_bar(

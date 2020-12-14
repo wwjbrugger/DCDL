@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def visualize_pic(pic_array, label_array, class_names, title):
     """ show 10 first  pictures """
     for i in range(20):
@@ -9,7 +10,7 @@ def visualize_pic(pic_array, label_array, class_names, title):
         plt.yticks([])
         plt.grid(False)
         if pic_array.shape[3] == 1:
-            plt.imshow(pic_array[i,:,:,0], cmap=plt.cm.Greys)
+            plt.imshow(pic_array[i, :, :, 0], cmap=plt.cm.Greys)
         elif pic_array.shape[3] == 3:
             plt.imshow(pic_array[i], cmap=plt.cm.Greys)
         else:
@@ -22,16 +23,20 @@ def visualize_pic(pic_array, label_array, class_names, title):
     plt.show()
 
 
-def graph_with_error_bar(x_values, y_values, y_stdr, title ,x_axis_title,
+def graph_with_error_bar(x_values, y_values, y_stdr, title, x_axis_title,
                          y_axis_tile, fix_y_axis, ax_out,
-                         save_path, plot_line, xticks_rotation  ):
+                         save_path, plot_line, xticks_rotation):
     if not ax_out:
         fig, ax = plt.subplots()
     else:
         ax = ax_out
+    ax.set_facecolor('white')
+    ax.grid(color='k', linestyle='-', linewidth=1, axis='y')
     ax.errorbar(x_values, y_values,
                 yerr=y_stdr,
-                fmt='o')
+                fmt='o',
+                mfc = 'blue',
+                )
     if plot_line:
         line = 0 * np.array(y_values) + y_values[0]
         ax.plot(x_values, line, '--r')
@@ -39,14 +44,21 @@ def graph_with_error_bar(x_values, y_values, y_stdr, title ,x_axis_title,
     plt.xticks(rotation=xticks_rotation)
     ax.set_ylabel(y_axis_tile)
     ax.set_title(title)
+
     if fix_y_axis:
         ax.set_ylim((0.5), (1))
 
     if save_path:
+        plt.tight_layout()
         plt.savefig(save_path,
-                dpi=300)
+                    dpi=300,
+                    bbox_inches='tight')
+                    # facecolor=fig.get_facecolor(),
+                    #edgecolor='none')
+        plt.close(fig)
     if not ax_out:
         plt.show()
+
 
 def mark_small_values(val):
     """
